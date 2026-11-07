@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# 本地截图 / 预览产物
+shots
+
+# 内部工作记录
+.workbuddy
+
+# 原始素材（已处理并复制到 src/assets/portrait.png）
+微信图片_*.jpg
+透明背景上的年轻男子肖像.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
