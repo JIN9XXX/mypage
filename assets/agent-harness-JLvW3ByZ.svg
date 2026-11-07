@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="50" x2="1320" y2="850" gradientUnits="userSpaceOnUse"><stop stop-color="#181b19"/><stop offset="1" stop-color="#0b0c0b"/></linearGradient>
+    <linearGradient id="accent" x1="330" y1="210" x2="1120" y2="650" gradientUnits="userSpaceOnUse"><stop stop-color="#d6e3c9"/><stop offset="1" stop-color="#89a979"/></linearGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d7dfd2" fill-opacity=".12"/></pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="m1 1 4 4-4 4" stroke="#9fb58e" stroke-width="1.5"/></marker>
+    <style>text{font-family:Inter,"Microsoft YaHei","Noto Sans CJK SC",sans-serif}.mono{font-family:"Courier New",monospace;letter-spacing:2px}.small{font-size:15px;fill:#9da59b}.body{font-size:20px;fill:#e9ede4}.label{font-size:14px;fill:#a8b39f;letter-spacing:1.5px}</style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/><rect width="1440" height="900" fill="url(#dots)"/>
+  <circle cx="792" cy="402" r="252" fill="#899d73" fill-opacity=".035" filter="url(#glow)"/>
+  <text x="72" y="78" class="mono" font-size="15" fill="#93a48c">01 / AGENT HARNESS</text>
+  <text x="72" y="141" font-size="42" fill="#f0f0e9">把一个目标，拆成可追踪的执行过程。</text>
+  <text x="73" y="178" class="small">任务规划 · 子 Agent 协作 · 文件与上下文管理 · 结果验证</text>
+  <path d="M254 426H376M640 426H718M992 426H1070" stroke="url(#accent)" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="315" cy="426" r="4" fill="#cfddc2"/><circle cx="680" cy="426" r="4" fill="#cfddc2"/><circle cx="1030" cy="426" r="4" fill="#cfddc2"/>
+  <rect x="72" y="312" width="182" height="228" rx="12" fill="#1d211e" stroke="#586454"/>
+  <text x="96" y="354" class="mono" font-size="12" fill="#83967b">01 / INPUT</text>
+  <circle cx="122" cy="407" r="16" fill="#83967b" fill-opacity=".14" stroke="#9aab8f"/><path d="M116 407h12m-6-6v12" stroke="#ccd8c2" stroke-width="1.5"/>
+  <text x="96" y="455" class="body">用户目标</text><text x="96" y="483" class="small">自然语言任务</text><text x="96" y="510" class="small">范围与约束</text>
+  <rect x="380" y="292" width="260" height="268" rx="14" fill="#20251f" stroke="#9dad8d" stroke-width="1.5"/>
+  <text x="404" y="330" class="mono" font-size="12" fill="#acc39b">02 / ORCHESTRATION</text>
+  <rect x="405" y="354" width="210" height="66" rx="8" fill="#dbe6d1" fill-opacity=".08" stroke="#62745c"/>
+  <text x="425" y="383" class="body" font-size="18">主 Agent · 任务规划</text><text x="425" y="405" class="small" font-size="13">分解步骤，维护任务状态</text>
+  <rect x="405" y="439" width="210" height="74" rx="8" fill="#141715" stroke="#3d483b"/>
+  <text x="423" y="467" class="label">PENDING  →  RUNNING</text><text x="423" y="492" class="label">DONE     /  FAILED</text>
+  <rect x="722" y="282" width="270" height="286" rx="12" fill="#191d1a" stroke="#485347"/>
+  <text x="748" y="322" class="mono" font-size="12" fill="#a4b496">03 / EXECUTION</text>
+  <rect x="750" y="351" width="214" height="62" rx="7" fill="#242a24" stroke="#63705d"/><circle cx="773" cy="382" r="6" fill="#b0c69e"/><text x="793" y="388" class="body" font-size="17">专业子 Agent</text>
+  <rect x="750" y="433" width="214" height="62" rx="7" fill="#242a24" stroke="#63705d"/><path d="M767 457h15v15h-15z" stroke="#a9bc99"/><path d="M771 461h7m-7 4h7" stroke="#a9bc99"/><text x="793" y="471" class="body" font-size="17">工具 · 虚拟文件</text>
+  <text x="750" y="533" class="small" font-size="13">工具结果与长日志保存为文件</text>
+  <rect x="1074" y="312" width="294" height="228" rx="12" fill="#1d211e" stroke="#586454"/>
+  <text x="1100" y="354" class="mono" font-size="12" fill="#9bb18c">04 / VERIFY</text>
+  <path d="M1101 390h26l10 10 17-20" stroke="#c4d5b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1100" y="455" class="body">检查与交付</text><text x="1100" y="484" class="small">整理结果与证据</text><text x="1100" y="511" class="small">记录未完成事项</text>
+  <path d="M510 559v72h130M857 568v63h-217M776 631h-136" stroke="#586a50" stroke-width="1.5" stroke-dasharray="5 6"/>
+  <rect x="360" y="648" width="647" height="93" rx="10" fill="#141715" stroke="#424b3e"/>
+  <text x="386" y="682" class="mono" font-size="12" fill="#a3b199">SHARED RUNTIME</text>
+  <text x="386" y="716" font-size="17" fill="#dfe5d8">记忆与上下文</text><path d="M571 698h1" stroke="#85947b"/><text x="608" y="716" font-size="17" fill="#dfe5d8">权限与沙箱</text><path d="M777 698h1" stroke="#85947b"/><text x="813" y="716" font-size="17" fill="#dfe5d8">日志与追踪</text>
+  <text x="72" y="830" class="mono" font-size="12" fill="#778173">CONCEPTUAL PROJECT DIAGRAM · NOT A PRODUCT SCREENSHOT</text>
+  <text x="1367" y="830" text-anchor="end" class="mono" font-size="12" fill="#778173">RUAN JING / 01</text>
+</svg>
