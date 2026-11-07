@@ -1,17 +1,21 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import portrait from './assets/portrait.webp'
+import agentDiagram from './assets/projects/agent-harness.svg'
+import commerceDiagram from './assets/projects/commerce-architecture.svg'
 
 const NAV = [
-  { label: 'Story', href: '#story' },
-  { label: 'Work', href: '#work' },
-  { label: 'Contact', href: '#contact' },
+  { label: '关于', href: '#story' },
+  { label: '经历', href: '#work' },
+  { label: '教育', href: '#education' },
+  { label: '项目', href: '#projects' },
+  { label: '技能', href: '#skills' },
+  { label: '联系', href: '#contact' },
 ]
 
 const SOCIAL = [
   { label: 'GitHub', href: 'https://github.com/JIN9XXX', external: true },
   { label: 'Email', href: 'mailto:2319297414@qq.com' },
-  { label: 'Phone', href: 'tel:17771744836' },
 ]
 
 const EDUCATION = [
@@ -56,8 +60,7 @@ const PROJECTS = [
     name: '通用任务执行 Agent',
     name_en: 'Multi-Agent Runtime',
     stack: 'LangGraph · FastAPI · Redis · Milvus · Kafka',
-    // 截图到位后：import agentShot from './assets/projects/agent-harness.png' 并赋给 shot
-    shot: null,
+    shot: agentDiagram,
     sections: [
       {
         k: '背景',
@@ -69,11 +72,11 @@ const PROJECTS = [
       },
       {
         k: '技术难点',
-        v: '子 Agent 委派会让上下文迅速膨胀，需要在委派边界做裁剪与摘要；工具产物要在多个 Agent 之间传递且不重复生成；沙箱内执行需要明确的权限与超时边界。[待补：挑一个具体难点的现象、定位过程与解法]',
+        v: '长任务会产生大量工具输出与日志。我将完整结果和日志放进虚拟文件系统，在上下文中保留阶段摘要、文件引用与下一步计划，方便 Agent 继续执行并回看依据。',
       },
       {
         k: '结果',
-        v: '[待补：试用范围、任务成功率或耗时对比；无数据则改为一句定性描述]',
+        v: '形成覆盖任务规划、子 Agent 委派、工具执行、文件管理与状态追踪的运行框架；页面暂不展示未验证的性能数据。',
       },
     ],
   },
@@ -82,23 +85,23 @@ const PROJECTS = [
     name: '谷粒商城',
     name_en: 'Distributed Commerce',
     stack: 'Spring Cloud Alibaba · Redis · RabbitMQ · Elasticsearch',
-    shot: null,
+    shot: commerceDiagram,
     sections: [
       {
         k: '背景',
-        v: '微服务电商交易平台，目标是把商品、订单、支付、库存这些核心链路按领域拆开，完整走一遍分布式架构的落地过程。[待补：项目性质 —— 课程项目 / 自学项目 / 实习产出]',
+        v: '基于尚硅谷教学项目的微服务电商练习，用来学习商品、订单、库存等服务如何协作。',
       },
       {
         k: '我做了什么',
-        v: '按 Spring Cloud Alibaba 体系拆分并实现商品、订单、支付、库存等核心模块，技术栈为 Spring Cloud Alibaba / Redis / RabbitMQ / Elasticsearch。[待补：具体负责的模块与个人贡献边界]',
+        v: '项目使用 Spring Cloud Alibaba、Redis、RabbitMQ 与 Elasticsearch。个人完成的模块和改动内容仍需逐项核对，因此这里先不把教学项目的全部功能写成个人成果。',
       },
       {
         k: '技术难点',
-        v: '[待补：这个项目里真正卡住你的一个点 —— 现象、定位过程、最终解法]',
+        v: '梳理服务拆分、模块间调用与消息队列在电商链路中的作用。',
       },
       {
         k: '结果',
-        v: '[待补：压测数据或规模；无数据则改为一句定性描述]',
+        v: '作为分布式微服务学习项目，后续可补充本人实际完成的模块和运行验证。',
       },
     ],
   },
@@ -200,182 +203,63 @@ export default function App() {
     <div className="relative bg-ink">
       {/* ================= HERO ================= */}
       <section
+        id="top"
         ref={heroRef}
-        className="relative h-[100dvh] min-h-[620px] w-full overflow-hidden"
+        className="relative min-h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_75%_60%_at_45%_42%,#1e1e1e_0%,#0d0d0d_55%,#070707_100%)]"
       >
-        {/* ① 背景 */}
-        <div className="anim-fade-in absolute inset-0 z-0 bg-[radial-gradient(ellipse_75%_60%_at_50%_38%,#1e1e1e_0%,#0d0d0d_55%,#070707_100%)]" />
-
-        {/* ② 名字底纹：仅 md+，只活在右半屏，DOM 在人像之前 → 被人像压住 */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute right-0 top-[12%] z-20 hidden w-[56%] overflow-hidden md:block"
-        >
-          <div
-            className="marquee anim-fade-up flex w-max whitespace-nowrap font-hn text-[6vh] leading-none text-cream/[0.14]"
-            style={{ animationDelay: '900ms', animationDuration: '55s' }}
-          >
-            {[0, 1, 2, 3].map((i) => (
-              <span key={i} className="pr-[4vw]">
-                Ruan &mdash; Jing&nbsp;
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* ③ 奶油基线：低于人像，被身体截断 */}
-        <div
-          className="anim-line absolute inset-x-6 bottom-[5.5rem] z-10 h-0.5 bg-cream md:inset-x-10 md:bottom-28"
-          style={{ animationDelay: '1150ms' }}
-        />
-
-        {/* ④ 人像：移动端底部居中 58%。
-            md–lg（768–1023）竖屏窄视口：竖图无法同时铺满宽高，用 cover 裁两侧，
-            保证头顶不被切；lg+ 有足够宽度，改 contain 右贴边，完整显示 */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex h-[58%] items-end justify-center md:inset-x-auto md:right-0 md:top-0 md:h-full md:w-[56%] md:justify-end">
-          <img
-            src={portrait}
-            alt="阮靖"
-            className="anim-rise-in h-full w-auto max-w-full object-contain object-bottom md:w-full md:object-cover md:object-top lg:object-contain lg:object-right-bottom"
-            style={{ animationDelay: '250ms' }}
-          />
-        </div>
-
-        {/* ⑤ 移动端底部压暗，保证白 T 上的文字可读 */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[25] h-[30vh] bg-gradient-to-t from-ink via-ink/70 to-transparent md:hidden" />
-
-        {/* ⑥ 顶部 Header：只剩品牌 + 年份 */}
         <header
-          className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 pt-6 transition-colors duration-500 sm:px-10 sm:pt-8 ${
+          className={`fixed inset-x-0 top-0 z-50 border-b border-cream/[0.08] px-6 transition-colors duration-500 sm:px-10 ${
             scrolled ? 'bg-ink/85 backdrop-blur-sm' : ''
           }`}
         >
-          <a
-            href="#top"
-            className="anim-fade-up font-hn text-lg tracking-wide text-cream"
-            style={{ animationDelay: '700ms' }}
-          >
-            阮靖
-          </a>
-
-          <span
-            className="anim-fade-up hidden font-hn text-xs tabular-nums text-cream/40 md:block"
-            style={{ animationDelay: '780ms' }}
-          >
-            2026
-          </span>
-
-          {/* 移动端汉堡 → X（断点必须与左栏导航一致，否则 640–767 无导航可点） */}
-          <button
-            type="button"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="anim-fade-up absolute right-6 top-6 z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
-            style={{ animationDelay: '700ms' }}
-          >
-            <span
-              className="block h-0.5 w-6 bg-cream"
-              style={{
-                transition: 'transform 500ms cubic-bezier(0.76, 0, 0.24, 1)',
-                transform: open
-                  ? 'translateY(8px) rotate(45deg)'
-                  : 'translateY(0) rotate(0deg)',
-              }}
-            />
-            <span
-              className="block h-0.5 w-6 bg-cream"
-              style={{
-                transition: 'opacity 300ms ease',
-                opacity: open ? 0 : 1,
-              }}
-            />
-            <span
-              className="block h-0.5 w-6 bg-cream"
-              style={{
-                transition: 'transform 500ms cubic-bezier(0.76, 0, 0.24, 1)',
-                transform: open
-                  ? 'translateY(-8px) rotate(-45deg)'
-                  : 'translateY(0) rotate(0deg)',
-              }}
-            />
-          </button>
+          <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between gap-6">
+            <a href="#top" className="shrink-0 font-hn text-lg tracking-wide text-cream">
+              阮靖 <span className="ml-2 text-[10px] tracking-[0.2em] text-cream/35">RUAN JING</span>
+            </a>
+            <nav aria-label="主导航" className="hidden items-center gap-5 font-hn text-xs text-cream/55 lg:flex xl:gap-7">
+              {NAV.map((item) => (
+                <a key={item.label} href={item.href} className="transition-colors duration-300 hover:text-cream">
+                  {item.label}
+                </a>
+              ))}
+              <a href="mailto:2319297414@qq.com" className="border border-cream/20 px-3 py-2 text-cream/75 transition-colors hover:border-cream/50 hover:text-cream">
+                联系我 ↗
+              </a>
+            </nav>
+            <button
+              type="button"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-1.5 lg:hidden"
+            >
+              <span className="block h-0.5 w-6 bg-cream transition-transform duration-500" style={{ transform: open ? 'translateY(4px) rotate(45deg)' : undefined }} />
+              <span className="block h-0.5 w-6 bg-cream transition-opacity duration-300" style={{ opacity: open ? 0 : 1 }} />
+              <span className="block h-0.5 w-6 bg-cream transition-transform duration-500" style={{ transform: open ? 'translateY(-8px) rotate(-45deg)' : undefined }} />
+            </button>
+          </div>
         </header>
 
-        {/* ⑦ 左栏文字（md+ 占 44%），移动端上下堆叠在顶部 */}
-        <div className="absolute inset-x-0 top-0 z-30 flex h-full flex-col gap-10 px-6 pt-24 md:w-[44%] md:justify-between md:gap-0 md:px-10 md:pb-[8.5rem] md:pt-[11vh]">
-          <p
-            className="anim-fade-up text-[11px] uppercase tracking-[0.3em] text-cream/40"
-            style={{ animationDelay: '400ms' }}
-          >
-            阮靖 · AI Agent Developer
-          </p>
-
-          <div>
-            <h1
-              className="anim-fade-up whitespace-nowrap font-hn text-[clamp(2.5rem,5.6vw,5rem)] leading-[0.92] tracking-[-0.02em] text-cream"
-              style={{ animationDelay: '500ms' }}
-            >
-              Ruan&nbsp;&mdash;&nbsp;Jing
-            </h1>
-            <p
-              className="anim-fade-up mt-6 max-w-[32rem] text-[15px] leading-[1.9] text-cream/55"
-              style={{ animationDelay: '660ms' }}
-            >
-              武汉大学电子信息硕士，做 Agent
-              系统架构与后端工程：任务规划、上下文管理、工具沙箱，以及让它真正上线的服务端底座。
-            </p>
-            <p
-              className="anim-fade-up mt-5 flex items-center gap-2 font-hn text-[11px] uppercase tracking-[0.22em] text-cream/45"
-              style={{ animationDelay: '760ms' }}
-            >
-              <span className="h-1 w-1 rounded-full bg-cream/60" />
-              Open to 2027 Grad Roles
-            </p>
+        <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-8 px-6 pb-12 pt-28 sm:px-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:pt-24">
+          <div className="anim-rise-in relative mx-auto flex h-[40svh] min-h-[270px] max-h-[490px] w-full max-w-[410px] items-end justify-center overflow-hidden sm:h-[48svh] lg:order-first lg:h-[min(72svh,680px)] lg:max-h-[680px] lg:max-w-none" style={{ animationDelay: '150ms' }}>
+            <div aria-hidden="true" className="absolute inset-x-[8%] bottom-[7%] top-[4%] rounded-t-[48%] border border-cream/10 bg-[radial-gradient(ellipse_at_50%_30%,rgba(239,238,233,0.09),rgba(239,238,233,0.01)_68%,transparent_70%)]" />
+            <div aria-hidden="true" className="absolute bottom-[7%] left-[8%] right-[8%] h-px bg-cream/20" />
+            <img src={portrait} alt="阮靖的个人肖像" fetchPriority="high" className="relative z-10 h-full w-full object-contain object-bottom" />
+            <span className="absolute bottom-3 left-[9%] z-20 font-hn text-[9px] uppercase tracking-[0.22em] text-cream/40">AI APPLICATIONS · AGENT ENGINEERING</span>
           </div>
 
-          {/* 导航 + 社交：md+ 才出现，与汉堡断点严格一致 */}
-          <div className="hidden gap-14 md:flex">
-            <nav className="flex flex-col gap-1.5 text-sm text-cream/70">
-              {NAV.map((item, i) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="anim-fade-up flex items-baseline gap-3 transition-colors duration-300 hover:text-cream"
-                  style={{ animationDelay: `${860 + i * 70}ms` }}
-                >
-                  <span className="font-hn text-[10px] tabular-nums text-cream/25">
-                    0{i + 1}
-                  </span>
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-            <div className="flex flex-col gap-1.5 text-sm text-cream/50">
-              {SOCIAL.map((item, i) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target={item.external ? '_blank' : undefined}
-                  rel={item.external ? 'noreferrer' : undefined}
-                  className="anim-fade-up transition-colors duration-300 hover:text-cream"
-                  style={{ animationDelay: `${1000 + i * 70}ms` }}
-                >
-                  {item.label}
-                </a>
-              ))}
+          <div className="anim-fade-up mx-auto w-full max-w-[590px] lg:mx-0" style={{ animationDelay: '350ms' }}>
+            <p className="flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-cream/45"><span className="h-px w-7 bg-cream/40" />个人作品集 · 2026</p>
+            <h1 className="mt-7 font-hn text-[clamp(2.6rem,6vw,5.4rem)] leading-[1.12] tracking-[-0.045em] text-cream">你好，我是<br /><span className="text-cream/55">阮靖。</span></h1>
+            <p className="mt-7 text-[15px] leading-[2] text-cream/70 sm:text-base">目前在武汉大学攻读电子信息硕士，关注 AI 应用、智能体系统和后端工程。做过通用任务执行 Agent，也参与搭建支持图文检索的知识库。</p>
+            <p className="mt-4 max-w-[34rem] text-sm leading-[2] text-cream/50">我喜欢把复杂问题拆清楚，再一步步做成能运行、能检查的系统。这个网站记录我的项目实践、技术方向和持续学习的过程。</p>
+            <div className="mt-7 flex flex-wrap gap-x-3 gap-y-2 font-hn text-[10px] tracking-wide text-cream/45"><span>AI 应用开发</span><span className="text-cream/20">/</span><span>Agent 工程</span><span className="text-cream/20">/</span><span>多模态检索</span></div>
+            <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
+              <a href="#projects" className="inline-flex items-center gap-4 bg-cream px-5 py-3 text-xs text-ink transition-colors hover:bg-white">看看我的项目 <span>↘</span></a>
+              <a href="mailto:2319297414@qq.com" className="inline-flex items-center gap-3 text-xs text-cream/65 transition-colors hover:text-cream">给我写邮件 <span>↗</span></a>
             </div>
           </div>
         </div>
-
-        {/* ⑧ Hero footer：只留左三行，右侧交给人像（避免奶油字压白 T） */}
-        <footer className="absolute inset-x-0 bottom-0 z-40 flex items-end justify-between px-6 pb-5 font-hn text-xs leading-relaxed text-cream sm:px-10 sm:pb-8 sm:text-sm">
-          <div className="anim-fade-up" style={{ animationDelay: '1300ms' }}>
-            <p>AI Agent Developer</p>
-            <p>Backend Engineer</p>
-            <p>武汉大学 · 电子信息硕士</p>
-          </div>
-        </footer>
       </section>
 
       {/* ================= STORY ================= */}
@@ -470,60 +354,30 @@ export default function App() {
           {PROJECTS.map((p) => (
             <article
               key={p.no}
-              className="border-t border-cream/10 pt-12 first:border-t-0 first:pt-0"
+              className="project-layout border-t border-cream/10 pt-12 first:border-t-0 first:pt-0"
             >
-              <header className="flex items-baseline gap-4 sm:gap-6">
-                <span className="font-hn text-[11px] tabular-nums text-cream/30">
-                  {p.no}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="font-hn text-xl tracking-tight text-cream sm:text-[26px]">
-                    {p.name}
-                    <span className="ml-3 text-[11px] uppercase tracking-[0.15em] text-cream/30">
-                      {p.name_en}
-                    </span>
-                  </h3>
-                  {p.stack && (
-                    <p className="mt-2 font-hn text-[11px] tracking-wide text-cream/40">
-                      {p.stack}
-                    </p>
-                  )}
-                </div>
-              </header>
+              <figure className="project-visual overflow-hidden border border-cream/10 bg-[#10110f]">
+                {p.shot && <img src={p.shot} alt={`${p.name}架构与执行流程示意图`} loading="lazy" className="project-illustration aspect-[16/10] w-full object-cover" />}
+                <figcaption className="flex flex-wrap justify-between gap-2 border-t border-cream/10 px-3 py-3 font-hn text-[9px] uppercase tracking-[0.12em] text-cream/35 sm:px-4"><span>项目结构示意</span><span>Architecture illustration · Not a product screenshot</span></figcaption>
+              </figure>
 
-              {/* 四段式：定宽标签列 + 正文 */}
-              <dl className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-[4.5rem_1fr]">
-                {p.sections.map((s) => (
-                  <Fragment key={s.k}>
-                    <dt className="pt-1 text-[11px] uppercase tracking-[0.22em] text-cream/35">
-                      {s.k}
-                    </dt>
-                    <dd className="max-w-[38rem] text-[15px] leading-[1.95] text-cream/70">
-                      {s.v}
-                    </dd>
-                  </Fragment>
-                ))}
-              </dl>
-
-              {/* 截图位：未提供时渲染同尺寸占位框，切换零布局跳动 */}
-              <div className="mt-10">
-                {p.shot ? (
-                  <img
-                    src={p.shot}
-                    alt={`${p.name} 界面截图`}
-                    loading="lazy"
-                    className="aspect-[16/10] w-full max-w-[46rem] border border-cream/10 object-cover object-top"
-                  />
-                ) : (
-                  <div className="flex aspect-[16/10] w-full max-w-[46rem] flex-col justify-between border border-cream/10 bg-[repeating-linear-gradient(135deg,rgba(239,238,233,0.05)_0px,rgba(239,238,233,0.05)_1px,transparent_1px,transparent_9px)] p-4">
-                    <span className="font-hn text-[10px] uppercase tracking-[0.22em] text-cream/20">
-                      {p.name_en}
-                    </span>
-                    <span className="font-hn text-[10px] uppercase tracking-[0.22em] text-cream/30">
-                      Screenshot pending
-                    </span>
+              <div className="project-copy min-w-0">
+                <header className="flex items-baseline gap-4 sm:gap-6">
+                  <span className="font-hn text-[11px] tabular-nums text-cream/30">{p.no}</span>
+                  <div className="min-w-0">
+                    <h3 className="font-hn text-xl tracking-tight text-cream sm:text-[26px]">{p.name}<span className="ml-3 text-[11px] uppercase tracking-[0.15em] text-cream/30">{p.name_en}</span></h3>
+                    {p.stack && <p className="mt-2 font-hn text-[11px] tracking-wide text-cream/40">{p.stack}</p>}
                   </div>
-                )}
+                </header>
+
+                <dl className="mt-8 grid gap-x-5 gap-y-5 sm:grid-cols-[4.5rem_1fr]">
+                  {p.sections.map((s) => (
+                    <Fragment key={s.k}>
+                      <dt className="pt-1 text-[11px] uppercase tracking-[0.22em] text-cream/35">{s.k}</dt>
+                      <dd className="text-sm leading-[1.95] text-cream/70">{s.v}</dd>
+                    </Fragment>
+                  ))}
+                </dl>
               </div>
             </article>
           ))}
@@ -603,13 +457,13 @@ export default function App() {
       {/* ================= 移动端抽屉（断点 md，与左栏导航严格一致） ================= */}
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-500 md:hidden ${
+        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-500 lg:hidden ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
 
       <div
-        className={`fixed right-0 top-0 z-[60] h-full w-[80%] max-w-sm bg-[#141414] px-8 py-10 transition-transform duration-[600ms] md:hidden ${
+        className={`fixed right-0 top-0 z-[60] h-full w-[80%] max-w-sm bg-[#141414] px-8 py-10 transition-transform duration-[600ms] lg:hidden ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.76, 0, 0.24, 1)' }}
