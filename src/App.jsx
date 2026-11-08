@@ -1,16 +1,16 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { X } from 'lucide-react'
-import portrait from './assets/portrait.webp'
+import { ArrowDown, ArrowUpRight, Menu, X } from 'lucide-react'
+import portraitType from './assets/portrait-type.png'
 import agentDiagram from './assets/projects/agent-harness.svg'
 import commerceDiagram from './assets/projects/commerce-architecture.svg'
 
 const NAV = [
-  { label: '关于', href: '#story' },
-  { label: '经历', href: '#work' },
-  { label: '教育', href: '#education' },
-  { label: '项目', href: '#projects' },
-  { label: '技能', href: '#skills' },
-  { label: '联系', href: '#contact' },
+  { label: '关于', en: 'ABOUT', href: '#story' },
+  { label: '经历', en: 'EXPERIENCE', href: '#work' },
+  { label: '教育', en: 'EDUCATION', href: '#education' },
+  { label: '项目', en: 'PROJECTS', href: '#projects' },
+  { label: '技能', en: 'STACK', href: '#skills' },
+  { label: '联系', en: 'CONTACT', href: '#contact' },
 ]
 
 const SOCIAL = [
@@ -56,52 +56,54 @@ const EXPERIENCE = [
 
 const PROJECTS = [
   {
-    no: '01',
+    no: '001',
     name: '通用任务执行 Agent',
     name_en: 'Multi-Agent Runtime',
+    kind: 'AGENT SYSTEM',
     stack: 'LangGraph · FastAPI · Redis · Milvus · Kafka',
     shot: agentDiagram,
     sections: [
       {
-        k: '背景',
-        v: '在深圳天源迪科实习期间开发的通用任务执行 Agent，目标是让模型接到开放式任务后自行规划、调用工具、产出文件，而不是只回答单轮问题。',
+        k: '任务',
+        v: '让模型面对开放式任务时能够自行规划、调用工具并产出文件，而不只回答单轮问题。',
       },
       {
-        k: '我做了什么',
-        v: '负责四条主线：任务规划与拆解、虚拟文件系统统一工具产物、子 Agent 委派、上下文管理；其上实现可插拔中间件、Skills 技能系统、记忆管理、安全沙箱与链路追踪。',
+        k: '实现',
+        v: '负责任务规划、虚拟文件系统、子 Agent 委派和上下文管理，并实现可插拔中间件、Skills、记忆、安全沙箱与链路追踪。',
       },
       {
-        k: '技术难点',
-        v: '长任务会产生大量工具输出与日志。我将完整结果和日志放进虚拟文件系统，在上下文中保留阶段摘要、文件引用与下一步计划，方便 Agent 继续执行并回看依据。',
+        k: '工程重点',
+        v: '长任务产生的完整工具结果和日志存入虚拟文件系统；上下文保留阶段摘要、文件引用和下一步计划，便于继续执行与回看。',
       },
       {
-        k: '结果',
-        v: '形成覆盖任务规划、子 Agent 委派、工具执行、文件管理与状态追踪的运行框架；页面暂不展示未验证的性能数据。',
+        k: '状态',
+        v: '形成覆盖规划、委派、工具执行、文件管理与状态追踪的运行框架。',
       },
     ],
   },
   {
-    no: '02',
+    no: '002',
     name: '谷粒商城',
     name_en: 'Distributed Commerce',
+    kind: 'LEARNING PROJECT',
     stack: 'Spring Cloud Alibaba · Redis · RabbitMQ · Elasticsearch',
     shot: commerceDiagram,
     sections: [
       {
-        k: '背景',
-        v: '基于尚硅谷教学项目的微服务电商练习，用来学习商品、订单、库存等服务如何协作。',
+        k: '任务',
+        v: '基于尚硅谷教学项目的微服务电商练习，用于理解商品、订单、库存等服务如何协作。',
       },
       {
-        k: '我做了什么',
-        v: '项目使用 Spring Cloud Alibaba、Redis、RabbitMQ 与 Elasticsearch。个人完成的模块和改动内容仍需逐项核对，因此这里先不把教学项目的全部功能写成个人成果。',
+        k: '技术栈',
+        v: 'Spring Cloud Alibaba、Redis、RabbitMQ 与 Elasticsearch。',
       },
       {
-        k: '技术难点',
+        k: '学习重点',
         v: '梳理服务拆分、模块间调用与消息队列在电商链路中的作用。',
       },
       {
-        k: '结果',
-        v: '作为分布式微服务学习项目，后续可补充本人实际完成的模块和运行验证。',
+        k: '状态',
+        v: '个人完成的具体模块和改动待逐项核对，这里不将教学项目的全部功能写成个人成果。',
       },
     ],
   },
@@ -109,22 +111,15 @@ const PROJECTS = [
 
 const SKILLS = [
   {
-    group: 'AI Agent / LLM',
+    group: 'AI AGENT / LLM',
     items: ['LangGraph', 'ReAct', 'RAG', 'FastAPI', 'MCP'],
   },
   {
-    group: 'Backend',
-    items: [
-      'Spring Cloud Alibaba',
-      'Java',
-      'Python',
-      'Redis',
-      'RabbitMQ',
-      'Elasticsearch',
-    ],
+    group: 'BACKEND',
+    items: ['Spring Cloud Alibaba', 'Java', 'Python', 'Redis', 'RabbitMQ', 'Elasticsearch'],
   },
   {
-    group: 'Certifications',
+    group: 'CERTIFICATIONS',
     items: [
       '网络安全人才能力认证（优秀）',
       'CCP 证书',
@@ -134,45 +129,43 @@ const SKILLS = [
   },
 ]
 
-/* 滚动进入视口时淡入 */
 function useReveal() {
   useEffect(() => {
-    const els = document.querySelectorAll('.reveal')
+    const targets = document.querySelectorAll('.reveal')
     if (!('IntersectionObserver' in window)) {
-      els.forEach((el) => el.classList.add('is-visible'))
-      return
+      targets.forEach((target) => target.classList.add('is-visible'))
+      return undefined
     }
-    const io = new IntersectionObserver(
+
+    const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add('is-visible')
-            io.unobserve(e.target)
-          }
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
         })
       },
-      { rootMargin: '0px 0px -12% 0px', threshold: 0.08 },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
     )
-    els.forEach((el) => io.observe(el))
-    return () => io.disconnect()
+    targets.forEach((target) => observer.observe(target))
+    return () => observer.disconnect()
   }, [])
 }
 
-function Section({ id, label, children }) {
+function Section({ id, index, label, command, title, children }) {
   return (
-    <section
-      id={id}
-      className="border-t border-cream/10 px-6 py-20 sm:px-10 sm:py-32"
-    >
-      <div className="mx-auto max-w-6xl">
-        <div className="grid gap-8 sm:grid-cols-[10rem_1fr] sm:gap-16">
-          <div className="reveal">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-cream/50">
-              {label}
-            </p>
+    <section id={id} className="site-section" aria-labelledby={`${id}-title`}>
+      <div className="page-frame">
+        <header className="section-header reveal">
+          <div className="section-file">
+            <span className="section-index">{index}</span>
+            <span className="section-file-name">/{label.toLowerCase().replaceAll(' ', '-')}</span>
           </div>
-          <div className="min-w-0">{children}</div>
-        </div>
+          <p className="section-command">{command}</p>
+          <h2 id={`${id}-title`} className="section-heading">{title}</h2>
+          <span className="section-header-status"><i /> FILE_READY</span>
+        </header>
+        <div className="section-content">{children}</div>
       </div>
     </section>
   )
@@ -181,7 +174,10 @@ function Section({ id, label, children }) {
 export default function App() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const heroRef = useRef(null)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const introTrackRef = useRef(null)
+  const heroStageRef = useRef(null)
+  const portraitRef = useRef(null)
 
   useReveal()
 
@@ -193,354 +189,265 @@ export default function App() {
   }, [open])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
-    onScroll()
+    if (!open) return undefined
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
+  useEffect(() => {
+    const track = introTrackRef.current
+    const stage = heroStageRef.current
+    const portrait = portraitRef.current
+    if (!track || !stage || !portrait) return undefined
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let frame = 0
+
+    const clamp01 = (value) => Math.max(0, Math.min(1, value))
+    const ease = (value) => {
+      const progress = clamp01(value)
+      return progress * progress * (3 - 2 * progress)
+    }
+
+    const update = () => {
+      frame = 0
+      const trackRect = track.getBoundingClientRect()
+      const distance = Math.max(track.offsetHeight - stage.offsetHeight, 1)
+      const progress = reducedMotion.matches ? 0 : clamp01(-trackRect.top / distance)
+      const eased = ease(progress)
+      const imageWidth = portrait.offsetWidth
+      const imageHeight = portrait.offsetHeight
+      const mobileLayout = window.matchMedia('(max-width: 760px)').matches
+      const portraitLeft = stage.clientWidth * (mobileLayout ? 0.73 : window.innerWidth <= 1050 ? 0.71 : 0.68)
+      const portraitTop = stage.clientHeight * (mobileLayout ? 0.71 : 0.52)
+      const eyeX = portraitLeft + imageWidth * 0.034
+      const eyeY = portraitTop - imageHeight * 0.058
+      const panX = window.innerWidth / 2 - eyeX
+      const panY = window.innerHeight / 2 - eyeY
+      const zoom = reducedMotion.matches ? 1 : 1 + eased * 7
+      const copyOpacity = reducedMotion.matches ? 1 : 1 - ease(progress / 0.42)
+
+      stage.style.setProperty('--intro-progress', progress.toFixed(4))
+      stage.style.setProperty('--portrait-zoom', zoom.toFixed(3))
+      stage.style.setProperty('--portrait-pan-x', `${(panX * eased).toFixed(1)}px`)
+      stage.style.setProperty('--portrait-pan-y', `${(panY * eased).toFixed(1)}px`)
+      stage.style.setProperty('--hero-copy-opacity', copyOpacity.toFixed(3))
+      setScrolled(window.scrollY > 32)
+      setScrollProgress(Math.round((window.scrollY / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)) * 100))
+    }
+
+    const onScroll = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(update)
+    }
+
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('resize', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
   }, [])
 
   return (
-    <div className="relative bg-ink">
-      {/* ================= HERO ================= */}
-      <section
-        id="top"
-        ref={heroRef}
-        className="relative min-h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_75%_60%_at_45%_42%,#1e1e1e_0%,#0d0d0d_55%,#070707_100%)]"
-      >
-        <header
-          className={`fixed inset-x-0 top-0 z-50 border-b border-cream/[0.08] px-6 transition-colors duration-500 sm:px-10 ${
-            scrolled ? 'bg-ink/85 backdrop-blur-sm' : ''
-          }`}
-        >
-          <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between gap-6">
-            <a href="#top" className="shrink-0 font-hn text-lg tracking-wide text-cream">
-              阮靖 <span className="ml-2 text-[10px] tracking-[0.2em] text-cream/35">RUAN JING</span>
-            </a>
-            <nav aria-label="主导航" className="hidden items-center gap-5 font-hn text-xs text-cream/55 lg:flex xl:gap-7">
-              {NAV.map((item) => (
-                <a key={item.label} href={item.href} className="transition-colors duration-300 hover:text-cream">
-                  {item.label}
-                </a>
-              ))}
-              <a href="mailto:2319297414@qq.com" className="border border-cream/20 px-3 py-2 text-cream/75 transition-colors hover:border-cream/50 hover:text-cream">
-                联系我 ↗
-              </a>
-            </nav>
-            <button
-              type="button"
-              aria-label={open ? 'Close menu' : 'Open menu'}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className="flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-1.5 lg:hidden"
-            >
-              <span className="block h-0.5 w-6 bg-cream transition-transform duration-500" style={{ transform: open ? 'translateY(4px) rotate(45deg)' : undefined }} />
-              <span className="block h-0.5 w-6 bg-cream transition-opacity duration-300" style={{ opacity: open ? 0 : 1 }} />
-              <span className="block h-0.5 w-6 bg-cream transition-transform duration-500" style={{ transform: open ? 'translateY(-8px) rotate(-45deg)' : undefined }} />
-            </button>
-          </div>
-        </header>
-
-        <div className="relative z-10 mx-auto grid min-h-[100svh] max-w-6xl items-center gap-8 px-6 pb-12 pt-28 sm:px-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:pt-24">
-          <div className="anim-rise-in relative mx-auto flex h-[40svh] min-h-[270px] max-h-[490px] w-full max-w-[410px] items-end justify-center overflow-hidden sm:h-[48svh] lg:order-first lg:h-[min(72svh,680px)] lg:max-h-[680px] lg:max-w-none" style={{ animationDelay: '150ms' }}>
-            <div aria-hidden="true" className="absolute inset-x-[8%] bottom-[7%] top-[4%] rounded-t-[48%] border border-cream/10 bg-[radial-gradient(ellipse_at_50%_30%,rgba(239,238,233,0.09),rgba(239,238,233,0.01)_68%,transparent_70%)]" />
-            <div aria-hidden="true" className="absolute bottom-[7%] left-[8%] right-[8%] h-px bg-cream/20" />
-            <img src={portrait} alt="阮靖的个人肖像" fetchPriority="high" className="relative z-10 h-full w-full object-contain object-bottom" />
-            <span className="absolute bottom-3 left-[9%] z-20 font-hn text-[9px] uppercase tracking-[0.22em] text-cream/40">AI APPLICATIONS · AGENT ENGINEERING</span>
-          </div>
-
-          <div className="anim-fade-up mx-auto w-full max-w-[590px] lg:mx-0" style={{ animationDelay: '350ms' }}>
-            <p className="flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-cream/45"><span className="h-px w-7 bg-cream/40" />个人作品集 · 2026</p>
-            <h1 className="mt-7 font-hn text-[clamp(2.6rem,6vw,5.4rem)] leading-[1.12] tracking-[-0.045em] text-cream">你好，我是<br /><span className="text-cream/55">阮靖。</span></h1>
-            <p className="mt-7 text-[15px] leading-[2] text-cream/70 sm:text-base">目前在武汉大学攻读电子信息硕士，关注 AI 应用、智能体系统和后端工程。做过通用任务执行 Agent，也参与搭建支持图文检索的知识库。</p>
-            <p className="mt-4 max-w-[34rem] text-sm leading-[2] text-cream/50">我喜欢把复杂问题拆清楚，再一步步做成能运行、能检查的系统。这个网站记录我的项目实践、技术方向和持续学习的过程。</p>
-            <div className="mt-7 flex flex-wrap gap-x-3 gap-y-2 font-hn text-[10px] tracking-wide text-cream/45"><span>AI 应用开发</span><span className="text-cream/20">/</span><span>Agent 工程</span><span className="text-cream/20">/</span><span>多模态检索</span></div>
-            <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
-              <a href="#projects" className="inline-flex items-center gap-4 bg-cream px-5 py-3 text-xs text-ink transition-colors hover:bg-white">看看我的项目 <span>↘</span></a>
-              <a href="mailto:2319297414@qq.com" className="inline-flex items-center gap-3 text-xs text-cream/65 transition-colors hover:text-cream">给我写邮件 <span>↗</span></a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= STORY ================= */}
-      <Section id="story" label="Story">
-        <div className="reveal">
-          <h2 className="max-w-3xl font-hn text-2xl leading-[1.35] tracking-tight text-cream sm:text-4xl">
-            我在做 AI Agent<span className="text-cream/40"> 从架构到落地</span>的事。
-          </h2>
-          <div className="mt-10 grid max-w-3xl gap-5 text-sm leading-[1.9] text-cream/65 sm:text-base">
-            <p>
-              武汉大学国家网络安全学院电子信息硕士在读，方向是 AI
-              应用与 Agent 系统。在深圳天源迪科做过通用任务执行 Agent
-              ，从任务规划一路做到沙箱与链路追踪，把「能跑」变成「可控、可观测、可扩展」。
-            </p>
-            <p>
-              也做后端。Spring Cloud
-              微服务、缓存与消息队列这些东西，是让 Agent 真正上生产的底座。
-              相信 Agent
-              的工程量不在模型调用，而在上下文、工具、状态和失败恢复。
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      {/* ================= WORK ================= */}
-      <Section id="work" label="Work">
-        {/* 经历 */}
-        <div className="reveal space-y-10">
-          {EXPERIENCE.map((job) => (
-            <article
-              key={job.org}
-              className="border-b border-cream/10 pb-10 last:border-0 last:pb-0"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                <h3 className="font-hn text-xl tracking-tight text-cream sm:text-2xl">
-                  {job.org}
-                  <span className="ml-2 text-xs uppercase tracking-[0.15em] text-cream/30">
-                    {job.org_en}
-                  </span>
-                </h3>
-                <span className="font-hn text-xs tabular-nums text-cream/40">
-                  {job.date}
-                </span>
-              </div>
-              <p className="mt-1.5 text-sm text-cream/50">{job.role}</p>
-              <ul className="mt-4 space-y-2 text-sm leading-relaxed text-cream/70">
-                {job.points.map((p) => (
-                  <li key={p} className="flex gap-3">
-                    <span className="mt-[0.6em] h-px w-4 shrink-0 bg-cream/30" />
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ul>
-              {job.stack && (
-                <p className="mt-4 font-hn text-xs tracking-wide text-cream/35">
-                  {job.stack}
-                </p>
-              )}
-            </article>
-          ))}
-        </div>
-      </Section>
-
-      {/* ================= EDUCATION ================= */}
-      <Section id="education" label="Education">
-        <div className="reveal space-y-8">
-          {EDUCATION.map((edu) => (
-            <div
-              key={edu.school}
-              className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
-            >
-              <div>
-                <h4 className="font-hn text-base text-cream sm:text-lg">
-                  {edu.school}
-                  <span className="ml-2 text-[11px] uppercase tracking-[0.15em] text-cream/30">
-                    {edu.school_en}
-                  </span>
-                </h4>
-                <p className="mt-1 text-sm text-cream/55">{edu.dept}</p>
-              </div>
-              <span className="font-hn text-xs tabular-nums text-cream/40">
-                {edu.date}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ================= PROJECTS ================= */}
-      <Section id="projects" label="Projects">
-        <div className="reveal space-y-16 sm:space-y-24">
-          {PROJECTS.map((p) => (
-            <article
-              key={p.no}
-              className="project-layout border-t border-cream/10 pt-12 first:border-t-0 first:pt-0"
-            >
-              <figure className="project-visual overflow-hidden border border-cream/10 bg-[#10110f]">
-                {p.shot && <img src={p.shot} alt={`${p.name}架构与执行流程示意图`} loading="lazy" className="project-illustration aspect-[16/10] w-full object-cover" />}
-                <figcaption className="flex flex-wrap justify-between gap-2 border-t border-cream/10 px-3 py-3 font-hn text-[9px] uppercase tracking-[0.12em] text-cream/35 sm:px-4"><span>项目结构示意</span><span>Architecture illustration · Not a product screenshot</span></figcaption>
-              </figure>
-
-              <div className="project-copy min-w-0">
-                <header className="flex items-baseline gap-4 sm:gap-6">
-                  <span className="font-hn text-[11px] tabular-nums text-cream/30">{p.no}</span>
-                  <div className="min-w-0">
-                    <h3 className="font-hn text-xl tracking-tight text-cream sm:text-[26px]">{p.name}<span className="ml-3 text-[11px] uppercase tracking-[0.15em] text-cream/30">{p.name_en}</span></h3>
-                    {p.stack && <p className="mt-2 font-hn text-[11px] tracking-wide text-cream/40">{p.stack}</p>}
-                  </div>
-                </header>
-
-                <dl className="mt-8 grid gap-x-5 gap-y-5 sm:grid-cols-[4.5rem_1fr]">
-                  {p.sections.map((s) => (
-                    <Fragment key={s.k}>
-                      <dt className="pt-1 text-[11px] uppercase tracking-[0.22em] text-cream/35">{s.k}</dt>
-                      <dd className="text-sm leading-[1.95] text-cream/70">{s.v}</dd>
-                    </Fragment>
-                  ))}
-                </dl>
-              </div>
-            </article>
-          ))}
-
-          <p className="font-hn text-sm text-cream/40">
-            更多代码在{' '}
-            <a
-              href="https://github.com/JIN9XXX"
-              target="_blank"
-              rel="noreferrer"
-              className="text-cream transition-opacity duration-300 hover:opacity-60"
-            >
-              GitHub
-            </a>
-          </p>
-        </div>
-      </Section>
-
-      {/* ================= SKILLS ================= */}
-      <Section id="skills" label="Skills">
-        <div className="reveal grid gap-10 sm:grid-cols-3 sm:gap-8">
-          {SKILLS.map((s) => (
-            <div key={s.group}>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-cream/35">
-                {s.group}
-              </p>
-              <ul className="mt-4 space-y-2 text-sm text-cream/70">
-                {s.items.map((item) => (
-                  <li key={item} className="leading-snug">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ================= CONTACT ================= */}
-      <Section id="contact" label="Contact">
-        <div className="reveal">
-          <p className="max-w-xl text-sm leading-relaxed text-cream/55">
-            有 Agent / 后端方向的岗位或合作，欢迎直接找我。
-          </p>
-          <a
-            href="mailto:2319297414@qq.com"
-            className="mt-8 block break-all font-hn text-2xl tracking-tight text-cream transition-opacity duration-300 hover:opacity-60 sm:text-4xl"
-          >
-            2319297414@qq.com
+    <div className="site-shell">
+      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className="header-inner">
+          <a href="#top" className="wordmark" aria-label="阮靖，回到首页">
+            <span className="wordmark-mark">RJ</span>
+            <span className="wordmark-copy">RUAN JING <small>PERSONAL SYSTEM</small></span>
           </a>
-          <div className="mt-10 flex flex-wrap gap-x-10 gap-y-3 font-hn text-sm text-cream/60">
-            {SOCIAL.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target={item.external ? '_blank' : undefined}
-                rel={item.external ? 'noreferrer' : undefined}
-                className="transition-opacity duration-300 hover:opacity-60"
-              >
-                {item.label}
+          <nav className="desktop-nav" aria-label="主导航">
+            {NAV.map((item) => (
+              <a key={item.href} href={item.href}>
+                <span>{item.label}</span><small>{item.en}</small>
               </a>
             ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* ================= FOOTER ================= */}
-      <footer className="border-t border-cream/10 px-6 py-10 sm:px-10">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 font-hn text-[11px] uppercase tracking-[0.2em] text-cream/35">
-          <span>© 2026 阮靖</span>
-          <a href="#top" className="transition-opacity duration-300 hover:opacity-60">
-            Back to top
+          </nav>
+          <a className="header-contact" href="https://github.com/JIN9XXX" target="_blank" rel="noreferrer">
+            GITHUB <ArrowUpRight size={14} strokeWidth={1.7} />
           </a>
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            aria-label={open ? '关闭导航菜单' : '打开导航菜单'}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? <X size={21} /> : <Menu size={21} />}
+          </button>
+        </div>
+        <div className="page-progress" aria-hidden="true"><span style={{ transform: `scaleX(${scrollProgress / 100})` }} /></div>
+      </header>
+
+      <div className="intro-track" ref={introTrackRef}>
+        <section id="top" className="hero-stage" ref={heroStageRef} aria-label="个人简介">
+          <div className="hero-grid-overlay" aria-hidden="true" />
+          <div className="hero-coordinate coordinate-top" aria-hidden="true">SYS://RJ.PORTFOLIO <span>V.2026.11</span></div>
+
+          <div className="hero-copy">
+            <p className="eyebrow"><span className="live-dot" /> PERSONAL PROFILE <span className="eyebrow-slash">/</span> 001</p>
+            <h1>把复杂任务<br /><span>做成可靠系统。</span></h1>
+            <p className="hero-summary">你好，我是阮靖。武汉大学电子信息硕士在读，关注 AI 应用、Agent 系统与后端工程。</p>
+            <div className="hero-terminal" aria-label="个人资料终端窗口">
+              <div className="terminal-titlebar">
+                <span className="terminal-lights"><i /><i /><i /></span>
+                <span>~/ruanjing/profile.yaml</span>
+                <span className="terminal-title-status">READ_ONLY</span>
+              </div>
+              <div className="terminal-body">
+                <p><span className="terminal-key">name:</span> <span className="terminal-value">阮靖</span></p>
+                <p><span className="terminal-key">focus:</span> <span className="terminal-value">AI applications / agent engineering</span></p>
+                <p><span className="terminal-key">principle:</span> <span className="terminal-value">可运行 · 可检查 · 可追踪</span></p>
+                <p className="terminal-prompt"><span>ruanjing@portfolio</span> <b>~</b> % <i /></p>
+              </div>
+            </div>
+            <a className="hero-cta" href="#projects">查看精选项目 <ArrowDown size={15} /></a>
+          </div>
+
+          <figure className="portrait-window" aria-label="文字构成的个人肖像">
+            <div className="portrait-window-bar"><span>portrait.render</span><span>1086 × 1448 PX</span></div>
+            <img
+              ref={portraitRef}
+              src={portraitType}
+              alt="以 AGENT、CONTEXT、RUNTIME 等技术词语排成的阮靖肖像"
+              fetchPriority="high"
+              draggable="false"
+            />
+            <figcaption><span>FIG. 001</span><span>SCROLL TO FOCUS</span></figcaption>
+          </figure>
+
+          <div className="hero-coordinate coordinate-bottom" aria-hidden="true">
+            <span><i /> SYSTEM ONLINE</span><span>SCROLL_Y <b>{String(Math.round(scrollProgress)).padStart(3, '0')}%</b></span>
+          </div>
+          <a className="scroll-cue" href="#story" aria-label="向下滚动，进入个人简介"><span>SCROLL TO EXPLORE</span><i><ArrowDown size={14} /></i></a>
+        </section>
+      </div>
+
+      <main>
+        <Section id="story" index="001" label="Profile" command="$ cat ./about.md" title="关于我">
+          <div className="profile-grid reveal">
+            <p className="profile-lead">我关注的不只是模型能不能回答，<br /><span>而是系统能否把任务完整做完。</span></p>
+            <div className="profile-copy">
+              <p>武汉大学国家网络安全学院电子信息硕士在读，方向是 AI 应用与 Agent 系统。在深圳天源迪科参与开发通用任务执行 Agent，从任务规划一路做到沙箱与链路追踪。</p>
+              <p>也做后端工程。微服务、缓存与消息队列，是让智能体应用稳定运行的基础。我关注上下文、工具、状态管理和失败恢复这些真正影响交付的工程问题。</p>
+              <div className="profile-tags"><span>AI 应用</span><span>Agent 工程</span><span>后端系统</span><span>多模态检索</span></div>
+            </div>
+          </div>
+        </Section>
+
+        <Section id="work" index="002" label="Experience" command="$ git log --oneline ./career" title="经历">
+          <div className="timeline-list">
+            {EXPERIENCE.map((job, index) => (
+              <article key={job.org} className="timeline-entry reveal" style={{ '--reveal-order': index }}>
+                <div className="timeline-gutter"><span>{String(index + 1).padStart(3, '0')}</span><i /></div>
+                <div className="timeline-main">
+                  <div className="timeline-title-row">
+                    <div><h3>{job.org}</h3><span className="org-en">{job.org_en}</span></div>
+                    <time>{job.date}</time>
+                  </div>
+                  <p className="role-label">{job.role}</p>
+                  <ul className="experience-points">{job.points.map((point) => <li key={point}>{point}</li>)}</ul>
+                  {job.stack && <p className="stack-line"><span>STACK</span>{job.stack}</p>}
+                </div>
+              </article>
+            ))}
+          </div>
+        </Section>
+
+        <Section id="education" index="003" label="Education" command="$ cat ./education.json" title="学习经历">
+          <div className="education-list">
+            {EDUCATION.map((edu, index) => (
+              <article key={edu.school} className="education-card reveal" style={{ '--reveal-order': index }}>
+                <div className="education-card-top"><span>ENTRY_{String(index + 1).padStart(2, '0')}</span><time>{edu.date}</time></div>
+                <h3>{edu.school}</h3>
+                <p className="education-en">{edu.school_en}</p>
+                <p className="education-dept">{edu.dept}</p>
+                <span className="education-corner" aria-hidden="true">↗</span>
+              </article>
+            ))}
+          </div>
+        </Section>
+
+        <Section id="projects" index="004" label="Selected Projects" command="$ ls -la ./projects" title="项目">
+          <div className="project-list">
+            {PROJECTS.map((project) => (
+              <article key={project.no} className="project-card reveal">
+                <div className="project-bar"><span><i />{project.kind}</span><span>PROJECT_{project.no}</span></div>
+                <figure className="project-visual">
+                  <img src={project.shot} alt={`${project.name}架构与执行流程示意图`} loading="lazy" />
+                  <figcaption><span>ARCHITECTURE MAP</span><span>STRUCTURE / FLOW / STATE</span></figcaption>
+                  <i className="project-scanline" aria-hidden="true" />
+                </figure>
+                <div className="project-copy">
+                  <header className="project-title-row">
+                    <div><span className="project-number">{project.no} //</span><h3>{project.name}</h3><p>{project.name_en}</p></div>
+                    <span className="project-state"><i /> DOCUMENTED</span>
+                  </header>
+                  <p className="project-stack"><span>STACK</span>{project.stack}</p>
+                  <dl className="project-details">
+                    {project.sections.map((item) => (
+                      <Fragment key={item.k}><dt>{item.k}</dt><dd>{item.v}</dd></Fragment>
+                    ))}
+                  </dl>
+                </div>
+              </article>
+            ))}
+          </div>
+          <a className="repo-link" href="https://github.com/JIN9XXX" target="_blank" rel="noreferrer">浏览 GitHub 仓库 <ArrowUpRight size={15} /></a>
+        </Section>
+
+        <Section id="skills" index="005" label="Tech Stack" command="$ cat ./stack.toml" title="技术栈">
+          <div className="skill-list">
+            {SKILLS.map((group, index) => (
+              <article key={group.group} className="skill-group reveal" style={{ '--reveal-order': index }}>
+                <h3><span>[[ stack.{String(index + 1).padStart(2, '0')} ]]</span>{group.group}</h3>
+                <ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul>
+              </article>
+            ))}
+          </div>
+        </Section>
+
+        <Section id="contact" index="006" label="Contact" command="$ ./connect.sh --ruanjing" title="保持联系">
+          <div className="contact-terminal reveal">
+            <p className="contact-output">有 Agent / 后端方向的岗位或合作，欢迎直接联系。</p>
+            <a className="contact-email" href="mailto:2319297414@qq.com"><span>mailto:</span>2319297414@qq.com<ArrowUpRight size={20} /></a>
+            <div className="contact-footer"><span>AVAILABLE FOR CONVERSATION <i /></span><div>{SOCIAL.map((item) => <a key={item.label} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined}>{item.label}<ArrowUpRight size={13} /></a>)}</div></div>
+          </div>
+        </Section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="page-frame footer-inner">
+          <a href="#top" className="footer-mark">RJ<span> / RUAN JING</span></a>
+          <span>© 2026 · PERSONAL SYSTEM</span>
+          <a href="#top" className="back-top">回到顶部 <ArrowUpRight size={13} /></a>
         </div>
       </footer>
 
-      {/* ================= 移动端抽屉（断点 md，与左栏导航严格一致） ================= */}
-      <div
+      <button
+        type="button"
+        className={`mobile-nav-backdrop ${open ? 'is-open' : ''}`}
+        aria-label="关闭导航菜单"
+        tabIndex={open ? 0 : -1}
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-500 lg:hidden ${
-          open ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
       />
-
-      <div
-        className={`fixed right-0 top-0 z-[60] h-full w-[80%] max-w-sm bg-[#141414] px-8 py-10 transition-transform duration-[600ms] lg:hidden ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{ transitionTimingFunction: 'cubic-bezier(0.76, 0, 0.24, 1)' }}
-      >
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setOpen(false)}
-          className="absolute right-6 top-6 z-[70] text-cream transition-all duration-500"
-          style={{
-            transform: open ? 'rotate(0deg)' : 'rotate(90deg)',
-            opacity: open ? 1 : 0,
-            transitionDelay: open ? '300ms' : '0ms',
-          }}
-        >
-          <X size={26} strokeWidth={1.5} />
-        </button>
-
-        <p
-          className="mb-8 text-[11px] uppercase tracking-[0.2em] text-cream/50 transition-all duration-500"
-          style={{
-            opacity: open ? 1 : 0,
-            transform: open ? 'translateY(0)' : 'translateY(16px)',
-            transitionDelay: open ? '250ms' : '0ms',
-          }}
-        >
-          Site Index
-        </p>
-
-        <nav className="flex flex-col gap-2">
-          {NAV.map((item, i) => (
-            <a
-              key={item.label}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="text-4xl text-cream transition-all duration-500"
-              style={{
-                opacity: open ? 1 : 0,
-                transform: open ? 'translateY(0)' : 'translateY(24px)',
-                transitionDelay: open ? `${300 + i * 80}ms` : '0ms',
-              }}
-            >
-              {item.label}
+      <aside className={`mobile-nav-panel ${open ? 'is-open' : ''}`} aria-hidden={!open}>
+        <p className="mobile-nav-label">~/site-index</p>
+        <nav aria-label="移动端主导航">
+          {NAV.map((item, index) => (
+            <a key={item.href} href={item.href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
+              <span>{String(index + 1).padStart(2, '0')}</span>{item.label}<small>{item.en}</small><ArrowUpRight size={15} />
             </a>
           ))}
         </nav>
-
-        <p
-          className="mb-5 mt-16 text-[11px] uppercase tracking-[0.2em] text-cream/50 transition-all duration-500"
-          style={{
-            opacity: open ? 1 : 0,
-            transform: open ? 'translateY(0)' : 'translateY(16px)',
-            transitionDelay: open ? '500ms' : '0ms',
-          }}
-        >
-          Find Me
-        </p>
-
-        <div className="flex flex-wrap gap-x-6 gap-y-2">
-          {SOCIAL.map((item, i) => (
-            <a
-              key={item.label}
-              href={item.href}
-              target={item.external ? '_blank' : undefined}
-              rel={item.external ? 'noreferrer' : undefined}
-              className="text-sm text-cream transition-all duration-500"
-              style={{
-                opacity: open ? 1 : 0,
-                transform: open ? 'translateY(0)' : 'translateY(16px)',
-                transitionDelay: open ? `${550 + i * 60}ms` : '0ms',
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-      </div>
+        <div className="mobile-nav-status"><i /> SYSTEM ONLINE</div>
+      </aside>
     </div>
   )
 }
