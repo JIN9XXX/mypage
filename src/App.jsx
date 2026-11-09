@@ -1,8 +1,14 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUpRight, Menu, X } from 'lucide-react'
+import TextRevealImage from './components/TextRevealImage'
+import TextFlowTransition from './components/TextFlowTransition'
+import PageIndex from './components/PageIndex'
+import portraitSource from './assets/portrait.webp'
 import portraitType from './assets/portrait-type.png'
-import agentDiagram from './assets/projects/agent-harness.svg'
-import commerceDiagram from './assets/projects/commerce-architecture.svg'
+import agentSource from './assets/projects/agent-harness-source.png'
+import agentText from './assets/projects/agent-harness-type.png'
+import commerceSource from './assets/projects/commerce-architecture-source.png'
+import commerceText from './assets/projects/commerce-architecture-type.png'
 
 const NAV = [
   { label: '关于', en: 'ABOUT', href: '#story' },
@@ -61,7 +67,8 @@ const PROJECTS = [
     name_en: 'Multi-Agent Runtime',
     kind: 'AGENT SYSTEM',
     stack: 'LangGraph · FastAPI · Redis · Milvus · Kafka',
-    shot: agentDiagram,
+    image: agentSource,
+    textImage: agentText,
     sections: [
       {
         k: '任务',
@@ -87,7 +94,8 @@ const PROJECTS = [
     name_en: 'Distributed Commerce',
     kind: 'LEARNING PROJECT',
     stack: 'Spring Cloud Alibaba · Redis · RabbitMQ · Elasticsearch',
-    shot: commerceDiagram,
+    image: commerceSource,
+    textImage: commerceText,
     sections: [
       {
         k: '任务',
@@ -103,7 +111,7 @@ const PROJECTS = [
       },
       {
         k: '状态',
-        v: '个人完成的具体模块和改动待逐项核对，这里不将教学项目的全部功能写成个人成果。',
+        v: '教学项目学习记录，围绕微服务架构与电商业务链路展开。',
       },
     ],
   },
@@ -132,8 +140,9 @@ const SKILLS = [
 function useReveal() {
   useEffect(() => {
     const targets = document.querySelectorAll('.reveal')
+    const sections = document.querySelectorAll('.site-section')
     if (!('IntersectionObserver' in window)) {
-      targets.forEach((target) => target.classList.add('is-visible'))
+      ;[...targets, ...sections].forEach((target) => target.classList.add('is-visible'))
       return undefined
     }
 
@@ -147,23 +156,39 @@ function useReveal() {
       },
       { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
     )
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        const section = entry.target
+        const bounds = section.getBoundingClientRect()
+        const originY = Math.max(0, Math.min(bounds.height, window.innerHeight / 2 - bounds.top))
+        const radius = Math.hypot(bounds.width / 2, Math.max(originY, bounds.height - originY)) + 2
+        section.style.setProperty('--section-open-y', `${originY}px`)
+        section.style.setProperty('--section-open-size', `${radius}px`)
+        section.classList.add('is-visible')
+        sectionObserver.unobserve(section)
+      })
+    }, { rootMargin: '0px 0px -5% 0px', threshold: 0 })
     targets.forEach((target) => observer.observe(target))
-    return () => observer.disconnect()
+    sections.forEach((section) => sectionObserver.observe(section))
+    return () => {
+      observer.disconnect()
+      sectionObserver.disconnect()
+    }
   }, [])
 }
 
-function Section({ id, index, label, command, title, children }) {
+function Section({ id, index, label, description, title, children }) {
   return (
-    <section id={id} className="site-section" aria-labelledby={`${id}-title`}>
+    <section id={id} className={`site-section section-${id}`} data-section-index={index} aria-labelledby={`${id}-title`}>
       <div className="page-frame">
         <header className="section-header reveal">
           <div className="section-file">
             <span className="section-index">{index}</span>
             <span className="section-file-name">/{label.toLowerCase().replaceAll(' ', '-')}</span>
           </div>
-          <p className="section-command">{command}</p>
           <h2 id={`${id}-title`} className="section-heading">{title}</h2>
-          <span className="section-header-status"><i /> FILE_READY</span>
+          <p className="section-description">{description}</p>
         </header>
         <div className="section-content">{children}</div>
       </div>
@@ -175,11 +200,138 @@ export default function App() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [activeNav, setActiveNav] = useState('story')
+  const [navigationTransition, setNavigationTransition] = useState('idle')
   const introTrackRef = useRef(null)
   const heroStageRef = useRef(null)
   const portraitRef = useRef(null)
+  const navigationTimersRef = useRef([])
 
   useReveal()
+
+  useEffect(() => {
+    const previousScrollRestoration = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+
+    const clearNavigationTimers = () => {
+      navigationTimersRef.current.forEach((timer) => window.clearTimeout(timer))
+      navigationTimersRef.current = []
+    }
+
+    const findTarget = (hash) => {
+      if (!hash || hash === '#') return null
+      try {
+        return document.getElementById(decodeURIComponent(hash.slice(1)))
+      } catch {
+        return null
+      }
+    }
+
+    const moveToTarget = (target) => {
+      const root = document.documentElement
+      let targetTop = 0
+      // A sticky element's offset changes while pinned; its track stays in document flow.
+      let node = target.id === 'top' ? introTrackRef.current : target
+      while (node && node !== document.body) {
+        targetTop += node.offsetTop
+        node = node.offsetParent
+      }
+      const topPadding = Number.parseFloat(window.getComputedStyle(root).scrollPaddingTop) || 0
+      const topMargin = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0
+      const previousBehavior = root.style.getPropertyValue('scroll-behavior')
+      const previousPriority = root.style.getPropertyPriority('scroll-behavior')
+      root.style.setProperty('scroll-behavior', 'auto', 'important')
+      window.scrollTo(window.scrollX, Math.max(0, targetTop - topPadding - topMargin))
+      if (previousBehavior) {
+        root.style.setProperty('scroll-behavior', previousBehavior, previousPriority)
+      } else {
+        root.style.removeProperty('scroll-behavior')
+      }
+    }
+
+    const navigateToHash = (hash, updateHistory = false) => {
+      const target = findTarget(hash)
+      if (!target) return false
+
+      if (updateHistory && window.location.hash !== hash) {
+        window.history.pushState(null, '', hash)
+      }
+
+      clearNavigationTimers()
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setNavigationTransition('idle')
+        moveToTarget(target)
+        return true
+      }
+
+      setNavigationTransition('covering')
+      navigationTimersRef.current.push(window.setTimeout(() => {
+        moveToTarget(target)
+        setNavigationTransition('revealing')
+      }, 500))
+      navigationTimersRef.current.push(window.setTimeout(() => {
+        setNavigationTransition('idle')
+      }, 1320))
+      return true
+    }
+
+    const onDocumentClick = (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      const link = event.target.closest?.('a[href]')
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return
+
+      const url = new URL(link.href, window.location.href)
+      if (
+        !url.hash ||
+        url.origin !== window.location.origin ||
+        url.pathname !== window.location.pathname ||
+        url.search !== window.location.search
+      ) return
+
+      if (!findTarget(url.hash)) return
+      event.preventDefault()
+      navigateToHash(url.hash, true)
+    }
+
+    const onPopState = () => {
+      navigateToHash(window.location.hash || '#top')
+    }
+
+    document.addEventListener('click', onDocumentClick)
+    window.addEventListener('popstate', onPopState)
+    return () => {
+      document.removeEventListener('click', onDocumentClick)
+      window.removeEventListener('popstate', onPopState)
+      clearNavigationTimers()
+      window.history.scrollRestoration = previousScrollRestoration
+    }
+  }, [])
+
+  useEffect(() => {
+    let frame = 0
+    const updateActiveSection = () => {
+      frame = 0
+      const anchor = window.innerHeight * 0.34
+      const current = [...document.querySelectorAll('.site-section')].find((section) => {
+        const bounds = section.getBoundingClientRect()
+        return bounds.top <= anchor && bounds.bottom > anchor
+      })
+      setActiveNav(current?.id ?? 'top')
+    }
+    const scheduleUpdate = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(updateActiveSection)
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [])
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
@@ -220,18 +372,18 @@ export default function App() {
       const eased = ease(progress)
       const imageWidth = portrait.offsetWidth
       const imageHeight = portrait.offsetHeight
-      const mobileLayout = window.matchMedia('(max-width: 760px)').matches
-      const portraitLeft = stage.clientWidth * (mobileLayout ? 0.73 : window.innerWidth <= 1050 ? 0.71 : 0.68)
-      const portraitTop = stage.clientHeight * (mobileLayout ? 0.71 : 0.52)
-      const eyeX = portraitLeft + imageWidth * 0.034
-      const eyeY = portraitTop - imageHeight * 0.058
+      // The left pupil in the supplied 1086 x 1448 portrait, measured in source coordinates.
+      const eyeX = portrait.offsetLeft + imageWidth * (0.448 - 0.5)
+      const eyeY = portrait.offsetTop + imageHeight * (0.439 - 0.5)
       const panX = window.innerWidth / 2 - eyeX
       const panY = window.innerHeight / 2 - eyeY
-      const zoom = reducedMotion.matches ? 1 : 1 + eased * 7
+      const zoom = reducedMotion.matches ? 1 : 1 + eased * 7 + ease((progress - 0.58) / 0.42) * 11
       const copyOpacity = reducedMotion.matches ? 1 : 1 - ease(progress / 0.42)
 
       stage.style.setProperty('--intro-progress', progress.toFixed(4))
       stage.style.setProperty('--portrait-zoom', zoom.toFixed(3))
+      stage.style.setProperty('--portrait-open', (reducedMotion.matches ? 0 : ease((progress - 0.08) / 0.4)).toFixed(4))
+      stage.style.setProperty('--intro-black', (reducedMotion.matches ? 0 : ease((progress - 0.91) / 0.09)).toFixed(4))
       stage.style.setProperty('--portrait-pan-x', `${(panX * eased).toFixed(1)}px`)
       stage.style.setProperty('--portrait-pan-y', `${(panY * eased).toFixed(1)}px`)
       stage.style.setProperty('--hero-copy-opacity', copyOpacity.toFixed(3))
@@ -264,8 +416,14 @@ export default function App() {
           </a>
           <nav className="desktop-nav" aria-label="主导航">
             {NAV.map((item) => (
-              <a key={item.href} href={item.href}>
-                <span>{item.label}</span><small>{item.en}</small>
+              <a key={item.href} href={item.href} className={activeNav === item.href.slice(1) ? 'is-active' : undefined} aria-current={activeNav === item.href.slice(1) ? 'location' : undefined}>
+                <span className="nav-roll" aria-label={item.label}>
+                  {[...item.label].map((letter, index) => (
+                    <span className="nav-roll-letter" key={index} style={{ '--letter-order': index }} aria-hidden="true">
+                      <span>{letter}</span><span>{letter}</span>
+                    </span>
+                  ))}
+                </span><small>{item.en}</small>
               </a>
             ))}
           </nav>
@@ -282,42 +440,59 @@ export default function App() {
             {open ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
+        <div className="header-marquee" aria-hidden="true">
+          <div>
+            <span>RUAN JING&nbsp; / &nbsp;AI APPLICATIONS&nbsp; / &nbsp;AGENT SYSTEMS&nbsp; / &nbsp;BACKEND ENGINEERING&nbsp; / &nbsp;</span>
+            <span>RUAN JING&nbsp; / &nbsp;AI APPLICATIONS&nbsp; / &nbsp;AGENT SYSTEMS&nbsp; / &nbsp;BACKEND ENGINEERING&nbsp; / &nbsp;</span>
+          </div>
+        </div>
         <div className="page-progress" aria-hidden="true"><span style={{ transform: `scaleX(${scrollProgress / 100})` }} /></div>
       </header>
 
       <div className="intro-track" ref={introTrackRef}>
         <section id="top" className="hero-stage" ref={heroStageRef} aria-label="个人简介">
           <div className="hero-grid-overlay" aria-hidden="true" />
+          <div className="hero-orbit" aria-hidden="true">
+            <svg viewBox="0 0 760 760" focusable="false">
+              <defs>
+                {[100, 145, 190, 235, 280, 325, 370].map((radius, index) => (
+                  <path key={radius} id={`portrait-orbit-${index}`} d={`M380 380m-${radius} 0a${radius} ${radius} 0 1 1 ${radius * 2} 0a${radius} ${radius} 0 1 1-${radius * 2} 0`} />
+                ))}
+              </defs>
+              {[100, 145, 190, 235, 280, 325, 370].map((radius, index) => (
+                <g key={radius} className="hero-orbit-ring" style={{ '--orbit-order': index }}>
+                  <circle cx="380" cy="380" r={radius} />
+                  <text><textPath href={`#portrait-orbit-${index}`} textLength={Math.PI * radius * 2} lengthAdjust="spacing">{'RUAN JING · AGENT SYSTEMS · CONTEXT · TOOLING · RUNTIME · '.repeat(index > 3 ? 3 : index > 0 ? 2 : 1)}</textPath></text>
+                </g>
+              ))}
+            </svg>
+          </div>
           <div className="hero-coordinate coordinate-top" aria-hidden="true">SYS://RJ.PORTFOLIO <span>V.2026.11</span></div>
 
           <div className="hero-copy">
             <p className="eyebrow"><span className="live-dot" /> PERSONAL PROFILE <span className="eyebrow-slash">/</span> 001</p>
             <h1>把复杂任务<br /><span>做成可靠系统。</span></h1>
             <p className="hero-summary">你好，我是阮靖。武汉大学电子信息硕士在读，关注 AI 应用、Agent 系统与后端工程。</p>
-            <div className="hero-terminal" aria-label="个人资料终端窗口">
-              <div className="terminal-titlebar">
-                <span className="terminal-lights"><i /><i /><i /></span>
-                <span>~/ruanjing/profile.yaml</span>
-                <span className="terminal-title-status">READ_ONLY</span>
-              </div>
-              <div className="terminal-body">
-                <p><span className="terminal-key">name:</span> <span className="terminal-value">阮靖</span></p>
-                <p><span className="terminal-key">focus:</span> <span className="terminal-value">AI applications / agent engineering</span></p>
-                <p><span className="terminal-key">principle:</span> <span className="terminal-value">可运行 · 可检查 · 可追踪</span></p>
-                <p className="terminal-prompt"><span>ruanjing@portfolio</span> <b>~</b> % <i /></p>
-              </div>
+            <div className="hero-meta" aria-label="个人方向">
+              <span>WUHAN UNIVERSITY</span><i />
+              <span>AI × AGENT × BACKEND</span>
             </div>
-            <a className="hero-cta" href="#projects">查看精选项目 <ArrowDown size={15} /></a>
+            <div className="hero-actions">
+              <a className="hero-cta" href="#projects">查看精选项目 <ArrowDown size={15} /></a>
+              <a className="hero-cta hero-cta-secondary" href="#contact">联系我 <ArrowUpRight size={15} /></a>
+            </div>
           </div>
 
           <figure className="portrait-window" aria-label="文字构成的个人肖像">
             <div className="portrait-window-bar"><span>portrait.render</span><span>1086 × 1448 PX</span></div>
-            <img
+            <TextRevealImage
               ref={portraitRef}
-              src={portraitType}
-              alt="以 AGENT、CONTEXT、RUNTIME 等技术词语排成的阮靖肖像"
+              imageSrc={portraitSource}
+              textSrc={portraitType}
+              alt="阮靖的个人肖像"
+              hint="移入查看原图 · 点击固定"
+              className="portrait-window-image"
               fetchPriority="high"
-              draggable="false"
             />
             <figcaption><span>FIG. 001</span><span>SCROLL TO FOCUS</span></figcaption>
           </figure>
@@ -330,7 +505,7 @@ export default function App() {
       </div>
 
       <main>
-        <Section id="story" index="001" label="Profile" command="$ cat ./about.md" title="关于我">
+        <Section id="story" index="001" label="Profile" description="从模型能力出发，走向能实际交付的应用与系统。" title="关于我">
           <div className="profile-grid reveal">
             <p className="profile-lead">我关注的不只是模型能不能回答，<br /><span>而是系统能否把任务完整做完。</span></p>
             <div className="profile-copy">
@@ -341,7 +516,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="work" index="002" label="Experience" command="$ git log --oneline ./career" title="经历">
+        <Section id="work" index="002" label="Experience" description="在真实任务中理解需求，把规划、工具与执行连接起来。" title="经历">
           <div className="timeline-list">
             {EXPERIENCE.map((job, index) => (
               <article key={job.org} className="timeline-entry reveal" style={{ '--reveal-order': index }}>
@@ -360,7 +535,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="education" index="003" label="Education" command="$ cat ./education.json" title="学习经历">
+        <Section id="education" index="003" label="Education" description="从统计学到电子信息，持续探索数据、模型与工程之间的联系。" title="学习经历">
           <div className="education-list">
             {EDUCATION.map((edu, index) => (
               <article key={edu.school} className="education-card reveal" style={{ '--reveal-order': index }}>
@@ -374,13 +549,19 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="projects" index="004" label="Selected Projects" command="$ ls -la ./projects" title="项目">
+        <Section id="projects" index="004" label="Selected Projects" description="从任务出发，记录系统如何设计、实现与协作。" title="项目">
           <div className="project-list">
             {PROJECTS.map((project) => (
               <article key={project.no} className="project-card reveal">
                 <div className="project-bar"><span><i />{project.kind}</span><span>PROJECT_{project.no}</span></div>
                 <figure className="project-visual">
-                  <img src={project.shot} alt={`${project.name}架构与执行流程示意图`} loading="lazy" />
+                  <TextRevealImage
+                    imageSrc={project.image}
+                    textSrc={project.textImage}
+                    alt={`${project.name}架构与执行流程示意图`}
+                    hint="移入查看原图 · 点击固定"
+                    loading="lazy"
+                  />
                   <figcaption><span>ARCHITECTURE MAP</span><span>STRUCTURE / FLOW / STATE</span></figcaption>
                   <i className="project-scanline" aria-hidden="true" />
                 </figure>
@@ -402,7 +583,7 @@ export default function App() {
           <a className="repo-link" href="https://github.com/JIN9XXX" target="_blank" rel="noreferrer">浏览 GitHub 仓库 <ArrowUpRight size={15} /></a>
         </Section>
 
-        <Section id="skills" index="005" label="Tech Stack" command="$ cat ./stack.toml" title="技术栈">
+        <Section id="skills" index="005" label="Tech Stack" description="围绕 AI 应用与后端系统，逐步积累可组合的工程能力。" title="技术栈">
           <div className="skill-list">
             {SKILLS.map((group, index) => (
               <article key={group.group} className="skill-group reveal" style={{ '--reveal-order': index }}>
@@ -413,7 +594,7 @@ export default function App() {
           </div>
         </Section>
 
-        <Section id="contact" index="006" label="Contact" command="$ ./connect.sh --ruanjing" title="保持联系">
+        <Section id="contact" index="006" label="Contact" description="关于 AI 应用、Agent 工程或新的合作机会，欢迎交流。" title="保持联系">
           <div className="contact-terminal reveal">
             <p className="contact-output">有 Agent / 后端方向的岗位或合作，欢迎直接联系。</p>
             <a className="contact-email" href="mailto:2319297414@qq.com"><span>mailto:</span>2319297414@qq.com<ArrowUpRight size={20} /></a>
@@ -441,13 +622,15 @@ export default function App() {
         <p className="mobile-nav-label">~/site-index</p>
         <nav aria-label="移动端主导航">
           {NAV.map((item, index) => (
-            <a key={item.href} href={item.href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
+            <a key={item.href} href={item.href} className={activeNav === item.href.slice(1) ? 'is-active' : undefined} aria-current={activeNav === item.href.slice(1) ? 'location' : undefined} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1}>
               <span>{String(index + 1).padStart(2, '0')}</span>{item.label}<small>{item.en}</small><ArrowUpRight size={15} />
             </a>
           ))}
         </nav>
         <div className="mobile-nav-status"><i /> SYSTEM ONLINE</div>
       </aside>
+      <PageIndex items={NAV} activeSection={activeNav} progress={scrollProgress} />
+      <TextFlowTransition phase={navigationTransition === 'idle' ? '' : navigationTransition} />
     </div>
   )
 }
