@@ -230,6 +230,7 @@ export default function App() {
   const heroStageRef = useRef(null)
   const portraitRef = useRef(null)
   const navigationTimersRef = useRef([])
+  const navigationCoveredRef = useRef(null)
 
   useReveal()
 
@@ -288,14 +289,14 @@ export default function App() {
         return true
       }
 
-      setNavigationTransition('covering')
-      navigationTimersRef.current.push(window.setTimeout(() => {
+      navigationCoveredRef.current = () => {
         moveToTarget(target)
         setNavigationTransition('revealing')
-      }, 500))
-      navigationTimersRef.current.push(window.setTimeout(() => {
-        setNavigationTransition('idle')
-      }, 1320))
+        navigationTimersRef.current.push(window.setTimeout(() => {
+          setNavigationTransition('idle')
+        }, 820))
+      }
+      setNavigationTransition('covering')
       return true
     }
 
@@ -656,7 +657,7 @@ export default function App() {
         <div className="mobile-nav-status"><i /> SYSTEM ONLINE</div>
       </aside>
       <PageIndex items={NAV} activeSection={activeNav} progress={scrollProgress} />
-      <TextFlowTransition phase={navigationTransition === 'idle' ? '' : navigationTransition} />
+      <TextFlowTransition phase={navigationTransition === 'idle' ? '' : navigationTransition} onCovered={() => navigationCoveredRef.current?.()} />
     </div>
   )
 }

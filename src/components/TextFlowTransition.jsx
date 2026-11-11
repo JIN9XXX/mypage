@@ -2,8 +2,11 @@ import { useEffect, useRef } from 'react'
 
 const GLYPHS = '01ABCDEF23456789!@#$%&*+-=<>/\\|{}[]();:~?'
 
-export default function TextFlowTransition({ phase }) {
+export default function TextFlowTransition({ phase, onCovered }) {
   const canvasRef = useRef(null)
+  const coveredCallback = useRef(onCovered)
+
+  useEffect(() => { coveredCallback.current = onCovered }, [onCovered])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -13,6 +16,7 @@ export default function TextFlowTransition({ phase }) {
     const started = performance.now()
     let frame = 0
     let lastTick = -1
+    let notified = false
     const draw = (now) => {
       const tick = Math.floor((now - started) / 40)
       if (tick !== lastTick) {
@@ -49,6 +53,12 @@ export default function TextFlowTransition({ phase }) {
             context.fillStyle = `rgba(232,230,224,${0.35 + (seed % 7) * 0.08})`
             context.fillText(GLYPHS[seed % GLYPHS.length], x, y)
           }
+        }
+        if (phase === 'covering' && progress >= 1 && !notified) {
+          notified = true
+          // Let the fully covered frame reach the screen before changing content.
+          frame = requestAnimationFrame(() => coveredCallback.current?.())
+          return
         }
       }
       frame = requestAnimationFrame(draw)

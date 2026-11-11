@@ -76,15 +76,18 @@ const previewUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/mypage/'
     await page.screenshot({ path: 'shots/eye-zoom.png' })
     await page.evaluate(() => window.scrollTo(0, 0))
     await page.waitForTimeout(100)
-    await page.locator('.desktop-nav a[href="#projects"]').click()
-    await page.locator('.page-transition-flow.is-covering').waitFor()
-    await page.waitForTimeout(200)
-    await page.screenshot({ path: 'shots/navigation-flow.png' })
-    assert.ok(await page.evaluate(() => new Promise(resolve => {
+    await page.evaluate(() => {
       const canvas = document.querySelector('.page-transition-flow')
-      let fullyCovered = false
+      let started = false
+      window.transitionCoverage = { full: false, finished: false }
       const inspect = () => {
-        if (!canvas.classList.contains('is-covering')) return resolve(fullyCovered)
+        const covering = canvas.classList.contains('is-covering')
+        if (started && !covering) {
+          window.transitionCoverage.finished = true
+          return
+        }
+        started ||= covering
+        if (!covering) return requestAnimationFrame(inspect)
         const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data
         let opaque = 0
         let sampled = 0
@@ -92,18 +95,23 @@ const previewUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/mypage/'
           if (pixels[index] === 255) opaque++
           sampled++
         }
-        fullyCovered ||= opaque / sampled > 0.995
+        window.transitionCoverage.full ||= opaque / sampled > 0.995
         requestAnimationFrame(inspect)
       }
       inspect()
-    })), 'The character field must cover the outgoing page before switching content')
+    })
+    await page.locator('.desktop-nav a[href="#projects"]').click()
+    await page.locator('.page-transition-flow.is-covering').waitFor()
+    await page.waitForTimeout(200)
+    await page.screenshot({ path: 'shots/navigation-flow.png' })
+    await page.waitForFunction(() => window.transitionCoverage.finished)
+    assert.ok(await page.evaluate(() => window.transitionCoverage.full),
+      'The character field must cover the outgoing page before switching content')
     await page.waitForTimeout(1400)
     assert.equal(await page.locator('.page-transition-flow.is-revealing').count(), 0)
     assert.ok(Math.abs(await page.locator('#projects').evaluate(el => el.getBoundingClientRect().top) - 104) < 5)
-    assert.ok(await page.locator('#projects').evaluate(el => {
-      const radius = parseFloat(getComputedStyle(el, '::after').getPropertyValue('--section-open-radius'))
-      return el.classList.contains('is-visible') && radius >= el.offsetHeight / 2
-    }), 'The circular opening must reveal even a tall projects section completely')
+    assert.equal(await page.locator('#projects').evaluate(el => getComputedStyle(el, '::after').display), 'none',
+      'Later chapters must use the character boundary rather than repeat the intro circle')
     await page.screenshot({ path: 'shots/projects-current.png' })
     const projectImage = page.locator('.project-visual .text-reveal-image').first()
     await projectImage.hover()
