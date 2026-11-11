@@ -3638,5 +3638,26 @@ body {
 .site-section::after,
 .site-section.section-story::before { display: none; }
 .section-story > .page-frame { transform: none; visibility: visible; }
+
+/* Keep projects full width even when the general section grid changes. */
+.site-section.section-projects > .page-frame {
+  grid-template-columns: minmax(0, 1fr);
+}
+.section-projects .project-title-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+.section-projects .project-title-row > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .section-projects .project-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .section-projects .project-visual {
+    border-right: 0;
+  }
+}
 .reveal,
 .reveal.is-visible { opacity: 1; transform: none; filter: none; transition: none; }

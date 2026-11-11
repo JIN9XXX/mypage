@@ -84,8 +84,11 @@ const url = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/mypage/'
     await touchImage.tap()
     assert.equal(await touchImage.getAttribute('aria-pressed'), 'false')
     await touch.close()
-    for (const width of [320, 768, 1024, 1440]) {
+    for (const width of [320, 390, 760, 768, 800, 1024, 1050, 1440]) {
       await page.setViewportSize({ width, height: 1000 })
+      for (const title of await page.locator('.project-title-row > div').all()) {
+        assert.ok(await title.evaluate(el => el.getBoundingClientRect().width >= 180), 'Project title squeezed into a vertical column at width ' + width)
+      }
       for (const id of ['top', 'story', 'work', 'education', 'projects', 'skills', 'contact']) {
         await page.locator(`#${id}`).scrollIntoViewIfNeeded()
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Horizontal overflow: ${width}/${id}`)
