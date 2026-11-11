@@ -183,6 +183,7 @@ function useReveal() {
       const maximum = Math.hypot(window.innerWidth / 2, window.innerHeight / 2) + 2
       story.style.setProperty('--portal-active', bounds.top < window.innerHeight && progress < 1 ? '1' : '0')
       story.style.setProperty('--story-content-offset', `${-Math.max(0, bounds.top)}px`)
+      story.style.setProperty('--story-content-visibility', bounds.top >= window.innerHeight ? 'hidden' : 'visible')
       story.style.setProperty('--scroll-open-radius', `${maximum * progress * progress}px`)
     }
     const scheduleStoryOpening = () => {

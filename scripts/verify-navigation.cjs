@@ -63,6 +63,8 @@ const previewUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/mypage/'
       const copy = document.querySelector('.hero-copy').getBoundingClientRect()
       return image.left + image.width / 2 < innerWidth / 2 && copy.left > innerWidth / 2
     }), 'The desktop hero must keep the portrait on the left and introduction on the right')
+    assert.equal(await page.locator('#story > .page-frame').evaluate(el => getComputedStyle(el).visibility), 'hidden',
+      'The pinned intro content must not overlap the hero before its scroll transition starts')
     await page.screenshot({ path: 'shots/home-current.png' })
     await page.evaluate(() => {
       const root = document.documentElement

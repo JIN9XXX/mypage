@@ -3659,8 +3659,9 @@ body {
 }
 .section-story > .page-frame {
   transform: translateY(var(--story-content-offset, 0px));
+  visibility: var(--story-content-visibility, hidden);
 }
 @media (prefers-reduced-motion: reduce) {
   .site-section.section-story::before { display: none; }
-  .section-story > .page-frame { transform: none; }
+  .section-story > .page-frame { transform: none; visibility: visible; }
 }
