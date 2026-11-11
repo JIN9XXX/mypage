@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUpRight, Menu, X } from 'lucide-react'
 import TextRevealImage from './components/TextRevealImage'
 import TextFlowTransition from './components/TextFlowTransition'
 import PageIndex from './components/PageIndex'
+import SectionFlowEdge from './components/SectionFlowEdge'
 import portraitSource from './assets/portrait.webp'
 import portraitType from './assets/portrait-type.png'
 import agentSource from './assets/projects/agent-harness-source.png'
@@ -171,9 +172,31 @@ function useReveal() {
     }, { rootMargin: '0px 0px -5% 0px', threshold: 0 })
     targets.forEach((target) => observer.observe(target))
     sections.forEach((section) => sectionObserver.observe(section))
+    const story = document.getElementById('story')
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let storyFrame = 0
+    const updateStoryOpening = () => {
+      storyFrame = 0
+      if (!story || motion.matches) return
+      const bounds = story.getBoundingClientRect()
+      const progress = Math.max(0, Math.min(1, (window.innerHeight - bounds.top) / (window.innerHeight * 0.9)))
+      const maximum = Math.hypot(window.innerWidth / 2, window.innerHeight / 2) + 2
+      story.style.setProperty('--portal-active', bounds.top < window.innerHeight && progress < 1 ? '1' : '0')
+      story.style.setProperty('--story-content-offset', `${-Math.max(0, bounds.top)}px`)
+      story.style.setProperty('--scroll-open-radius', `${maximum * progress * progress}px`)
+    }
+    const scheduleStoryOpening = () => {
+      if (!storyFrame) storyFrame = requestAnimationFrame(updateStoryOpening)
+    }
+    updateStoryOpening()
+    window.addEventListener('scroll', scheduleStoryOpening, { passive: true })
+    window.addEventListener('resize', scheduleStoryOpening, { passive: true })
     return () => {
       observer.disconnect()
       sectionObserver.disconnect()
+      cancelAnimationFrame(storyFrame)
+      window.removeEventListener('scroll', scheduleStoryOpening)
+      window.removeEventListener('resize', scheduleStoryOpening)
     }
   }, [])
 }
@@ -181,6 +204,7 @@ function useReveal() {
 function Section({ id, index, label, description, title, children }) {
   return (
     <section id={id} className={`site-section section-${id}`} data-section-index={index} aria-labelledby={`${id}-title`}>
+      <SectionFlowEdge />
       <div className="page-frame">
         <header className="section-header reveal">
           <div className="section-file">
@@ -517,6 +541,7 @@ export default function App() {
         </Section>
 
         <Section id="work" index="002" label="Experience" description="在真实任务中理解需求，把规划、工具与执行连接起来。" title="经历">
+          <img className="experience-type-field" src={agentText} alt="" aria-hidden="true" loading="lazy" />
           <div className="timeline-list">
             {EXPERIENCE.map((job, index) => (
               <article key={job.org} className="timeline-entry reveal" style={{ '--reveal-order': index }}>
@@ -539,6 +564,7 @@ export default function App() {
           <div className="education-list">
             {EDUCATION.map((edu, index) => (
               <article key={edu.school} className="education-card reveal" style={{ '--reveal-order': index }}>
+                <span className="education-year" aria-hidden="true">{edu.date.slice(0, 4)}</span>
                 <div className="education-card-top"><span>ENTRY_{String(index + 1).padStart(2, '0')}</span><time>{edu.date}</time></div>
                 <h3>{edu.school}</h3>
                 <p className="education-en">{edu.school_en}</p>
@@ -587,7 +613,7 @@ export default function App() {
           <div className="skill-list">
             {SKILLS.map((group, index) => (
               <article key={group.group} className="skill-group reveal" style={{ '--reveal-order': index }}>
-                <h3><span>[[ stack.{String(index + 1).padStart(2, '0')} ]]</span>{group.group}</h3>
+                <h3><span>{String(index + 1).padStart(3, '0')} /</span>{group.group}</h3>
                 <ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul>
               </article>
             ))}

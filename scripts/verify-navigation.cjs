@@ -12,30 +12,47 @@ const previewUrl = process.env.PREVIEW_URL || 'http://127.0.0.1:4173/mypage/'
     page.on('pageerror', error => errors.push(error.message))
     const openingPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } })
     await openingPage.goto(previewUrl)
-    await openingPage.evaluate(() => {
-      document.documentElement.style.scrollBehavior = 'auto'
-      window.scrollTo(0, document.querySelector('#story').offsetTop - 220)
-    })
-    await openingPage.waitForFunction(() => document.querySelector('#story').getAnimations({ subtree: true })
-      .some(animation => animation.transitionProperty === '--section-open-radius'))
-    const opening = await openingPage.locator('#story').evaluate(section => {
-      const animation = section.getAnimations({ subtree: true })
-        .find(item => item.transitionProperty === '--section-open-radius')
-      animation.pause()
-      const radii = [50, 200, 500].map(time => {
-        animation.currentTime = time
-        return parseFloat(getComputedStyle(section, '::after').getPropertyValue('--section-open-radius'))
+    const radii = []
+    for (const offset of [900, 650, 300, 650]) {
+      await openingPage.evaluate(offset => {
+        document.documentElement.style.scrollBehavior = 'auto'
+        window.scrollTo(0, document.querySelector('#story').offsetTop - offset)
+      }, offset)
+      await openingPage.waitForFunction(() => {
+        const section = document.querySelector('#story')
+        const bounds = section.getBoundingClientRect()
+        const progress = Math.max(0, Math.min(1, (innerHeight - bounds.top) / (innerHeight * 0.9)))
+        const expected = (Math.hypot(innerWidth / 2, innerHeight / 2) + 2) * progress ** 2
+        return Math.abs(parseFloat(getComputedStyle(section, '::after').getPropertyValue('--section-open-radius')) - expected) < 1
       })
-      animation.currentTime = 100
-      return { radii, maximum: parseFloat(section.style.getPropertyValue('--section-open-size')) }
-    })
-    assert.ok(opening.radii[0] > 0 && opening.radii[0] < opening.radii[1]
-      && opening.radii[1] < opening.radii[2] && opening.radii[2] < opening.maximum,
-    'The circular opening must grow continuously through intermediate frames')
+      radii.push(await openingPage.locator('#story').evaluate(section =>
+        parseFloat(getComputedStyle(section, '::after').getPropertyValue('--section-open-radius'))))
+    }
+    assert.ok(radii[0] > 0 && radii[0] < radii[1] && radii[1] < radii[2]
+      && Math.abs(radii[3] - radii[1]) < 2,
+    'The circular opening must follow scrolling and shrink again when scrolling back')
+    await openingPage.waitForTimeout(250)
+    assert.ok(Math.abs(await openingPage.locator('#story').evaluate(section =>
+      parseFloat(getComputedStyle(section, '::after').getPropertyValue('--section-open-radius'))) - radii[3]) < 2,
+    'The circular opening must stay still when scrolling stops')
     await openingPage.screenshot({ path: 'shots/section-opening-middle.png' })
     await openingPage.close()
     await page.goto(previewUrl)
     await page.locator('#top').waitFor()
+    assert.equal(await page.locator('#work').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(25, 25, 25)',
+      'The experience chapter must use the dark editorial surface')
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto'
+      window.scrollTo(0, document.querySelector('#work').offsetTop - 350)
+    })
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector('#work .section-flow-edge')
+      return canvas.width > 500 && canvas.getContext('2d')
+        .getImageData(0, 0, canvas.width, canvas.height).data.some((value, index) => index % 4 === 3 && value > 0)
+    })
+    await page.screenshot({ path: 'shots/scroll-character-boundary.png' })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForFunction(() => parseFloat(document.querySelector('.hero-stage').style.getPropertyValue('--portrait-zoom')) === 1)
     await page.evaluate(async () => {
       await document.fonts.load('14px "Geist Variable"')
       await document.fonts.load('12px "Geist Mono Variable"')
