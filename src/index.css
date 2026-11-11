@@ -3630,38 +3630,13 @@ body {
   .section-skills .skill-group { grid-template-columns: 1fr; gap: 22px; }
 }
 
-.site-section.section-story::after {
-  --section-open-radius: var(--scroll-open-radius, 0px);
-  transition: none;
-}
 
-.site-section.section-story { z-index: 2; }
-.site-section.section-story::after {
-  position: fixed;
-  inset: 0;
-  opacity: var(--portal-active, 0);
-  background-position: center;
-  mask-image: radial-gradient(circle at 50% 50%, transparent var(--section-open-radius), #000 calc(var(--section-open-radius) + 1px));
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--section-open-radius), #000 calc(var(--section-open-radius) + 1px));
-}
-
-.site-section.section-story::before {
-  display: block;
-  position: fixed;
-  z-index: 0;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  background: #f1eee7;
-  opacity: var(--portal-active, 0);
-  clip-path: circle(var(--scroll-open-radius, 0px) at 50% 50%);
-}
-.section-story > .page-frame {
-  transform: translateY(var(--story-content-offset, 0px));
-  visibility: var(--story-content-visibility, hidden);
-}
-@media (prefers-reduced-motion: reduce) {
-  .site-section.section-story::before { display: none; }
-  .section-story > .page-frame { transform: none; visibility: visible; }
-}
+/* The page stays in normal flow; chapter edges respond to scroll position. */
+.intro-track { height: auto; }
+.hero-stage { position: relative; top: auto; }
+.hero-stage::after,
+.site-section::after,
+.site-section.section-story::before { display: none; }
+.section-story > .page-frame { transform: none; visibility: visible; }
+.reveal,
+.reveal.is-visible { opacity: 1; transform: none; filter: none; transition: none; }

@@ -1,7 +1,6 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { ArrowDown, ArrowUpRight, Menu, X } from 'lucide-react'
 import TextRevealImage from './components/TextRevealImage'
-import TextFlowTransition from './components/TextFlowTransition'
 import PageIndex from './components/PageIndex'
 import SectionFlowEdge from './components/SectionFlowEdge'
 import portraitSource from './assets/portrait.webp'
@@ -138,70 +137,6 @@ const SKILLS = [
   },
 ]
 
-function useReveal() {
-  useEffect(() => {
-    const targets = document.querySelectorAll('.reveal')
-    const sections = document.querySelectorAll('.site-section')
-    if (!('IntersectionObserver' in window)) {
-      ;[...targets, ...sections].forEach((target) => target.classList.add('is-visible'))
-      return undefined
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return
-          entry.target.classList.add('is-visible')
-          observer.unobserve(entry.target)
-        })
-      },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
-    )
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return
-        const section = entry.target
-        const bounds = section.getBoundingClientRect()
-        const originY = Math.max(0, Math.min(bounds.height, window.innerHeight / 2 - bounds.top))
-        const radius = Math.hypot(bounds.width / 2, Math.max(originY, bounds.height - originY)) + 2
-        section.style.setProperty('--section-open-y', `${originY}px`)
-        section.style.setProperty('--section-open-size', `${radius}px`)
-        section.classList.add('is-visible')
-        sectionObserver.unobserve(section)
-      })
-    }, { rootMargin: '0px 0px -5% 0px', threshold: 0 })
-    targets.forEach((target) => observer.observe(target))
-    sections.forEach((section) => sectionObserver.observe(section))
-    const story = document.getElementById('story')
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    let storyFrame = 0
-    const updateStoryOpening = () => {
-      storyFrame = 0
-      if (!story || motion.matches) return
-      const bounds = story.getBoundingClientRect()
-      const progress = Math.max(0, Math.min(1, (window.innerHeight - bounds.top) / (window.innerHeight * 0.9)))
-      const maximum = Math.hypot(window.innerWidth / 2, window.innerHeight / 2) + 2
-      story.style.setProperty('--portal-active', bounds.top < window.innerHeight && progress < 1 ? '1' : '0')
-      story.style.setProperty('--story-content-offset', `${-Math.max(0, bounds.top)}px`)
-      story.style.setProperty('--story-content-visibility', bounds.top >= window.innerHeight ? 'hidden' : 'visible')
-      story.style.setProperty('--scroll-open-radius', `${maximum * progress * progress}px`)
-    }
-    const scheduleStoryOpening = () => {
-      if (!storyFrame) storyFrame = requestAnimationFrame(updateStoryOpening)
-    }
-    updateStoryOpening()
-    window.addEventListener('scroll', scheduleStoryOpening, { passive: true })
-    window.addEventListener('resize', scheduleStoryOpening, { passive: true })
-    return () => {
-      observer.disconnect()
-      sectionObserver.disconnect()
-      cancelAnimationFrame(storyFrame)
-      window.removeEventListener('scroll', scheduleStoryOpening)
-      window.removeEventListener('resize', scheduleStoryOpening)
-    }
-  }, [])
-}
-
 function Section({ id, index, label, description, title, children }) {
   return (
     <section id={id} className={`site-section section-${id}`} data-section-index={index} aria-labelledby={`${id}-title`}>
@@ -226,23 +161,9 @@ export default function App() {
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [activeNav, setActiveNav] = useState('story')
-  const [navigationTransition, setNavigationTransition] = useState('idle')
-  const introTrackRef = useRef(null)
-  const heroStageRef = useRef(null)
-  const portraitRef = useRef(null)
-  const navigationTimersRef = useRef([])
-  const navigationCoveredRef = useRef(null)
-
-  useReveal()
-
   useEffect(() => {
     const previousScrollRestoration = window.history.scrollRestoration
     window.history.scrollRestoration = 'manual'
-
-    const clearNavigationTimers = () => {
-      navigationTimersRef.current.forEach((timer) => window.clearTimeout(timer))
-      navigationTimersRef.current = []
-    }
 
     const findTarget = (hash) => {
       if (!hash || hash === '#') return null
@@ -256,23 +177,16 @@ export default function App() {
     const moveToTarget = (target) => {
       const root = document.documentElement
       let targetTop = 0
-      // A sticky element's offset changes while pinned; its track stays in document flow.
-      let node = target.id === 'top' ? introTrackRef.current : target
+      // Resolve document coordinates so navigation and browser history use the same position.
+      let node = target
       while (node && node !== document.body) {
         targetTop += node.offsetTop
         node = node.offsetParent
       }
       const topPadding = Number.parseFloat(window.getComputedStyle(root).scrollPaddingTop) || 0
       const topMargin = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0
-      const previousBehavior = root.style.getPropertyValue('scroll-behavior')
-      const previousPriority = root.style.getPropertyPriority('scroll-behavior')
-      root.style.setProperty('scroll-behavior', 'auto', 'important')
-      window.scrollTo(window.scrollX, Math.max(0, targetTop - topPadding - topMargin))
-      if (previousBehavior) {
-        root.style.setProperty('scroll-behavior', previousBehavior, previousPriority)
-      } else {
-        root.style.removeProperty('scroll-behavior')
-      }
+      window.scrollTo({ left: window.scrollX, top: Math.max(0, targetTop - topPadding - topMargin),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
     }
 
     const navigateToHash = (hash, updateHistory = false) => {
@@ -283,21 +197,7 @@ export default function App() {
         window.history.pushState(null, '', hash)
       }
 
-      clearNavigationTimers()
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        setNavigationTransition('idle')
-        moveToTarget(target)
-        return true
-      }
-
-      navigationCoveredRef.current = () => {
-        moveToTarget(target)
-        setNavigationTransition('revealing')
-        navigationTimersRef.current.push(window.setTimeout(() => {
-          setNavigationTransition('idle')
-        }, 820))
-      }
-      setNavigationTransition('covering')
+      moveToTarget(target)
       return true
     }
 
@@ -328,7 +228,6 @@ export default function App() {
     return () => {
       document.removeEventListener('click', onDocumentClick)
       window.removeEventListener('popstate', onPopState)
-      clearNavigationTimers()
       window.history.scrollRestoration = previousScrollRestoration
     }
   }, [])
@@ -376,43 +275,9 @@ export default function App() {
   }, [open])
 
   useEffect(() => {
-    const track = introTrackRef.current
-    const stage = heroStageRef.current
-    const portrait = portraitRef.current
-    if (!track || !stage || !portrait) return undefined
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     let frame = 0
-
-    const clamp01 = (value) => Math.max(0, Math.min(1, value))
-    const ease = (value) => {
-      const progress = clamp01(value)
-      return progress * progress * (3 - 2 * progress)
-    }
-
     const update = () => {
       frame = 0
-      const trackRect = track.getBoundingClientRect()
-      const distance = Math.max(track.offsetHeight - stage.offsetHeight, 1)
-      const progress = reducedMotion.matches ? 0 : clamp01(-trackRect.top / distance)
-      const eased = ease(progress)
-      const imageWidth = portrait.offsetWidth
-      const imageHeight = portrait.offsetHeight
-      // The left pupil in the supplied 1086 x 1448 portrait, measured in source coordinates.
-      const eyeX = portrait.offsetLeft + imageWidth * (0.448 - 0.5)
-      const eyeY = portrait.offsetTop + imageHeight * (0.439 - 0.5)
-      const panX = window.innerWidth / 2 - eyeX
-      const panY = window.innerHeight / 2 - eyeY
-      const zoom = reducedMotion.matches ? 1 : 1 + eased * 7 + ease((progress - 0.58) / 0.42) * 11
-      const copyOpacity = reducedMotion.matches ? 1 : 1 - ease(progress / 0.42)
-
-      stage.style.setProperty('--intro-progress', progress.toFixed(4))
-      stage.style.setProperty('--portrait-zoom', zoom.toFixed(3))
-      stage.style.setProperty('--portrait-open', (reducedMotion.matches ? 0 : ease((progress - 0.08) / 0.4)).toFixed(4))
-      stage.style.setProperty('--intro-black', (reducedMotion.matches ? 0 : ease((progress - 0.91) / 0.09)).toFixed(4))
-      stage.style.setProperty('--portrait-pan-x', `${(panX * eased).toFixed(1)}px`)
-      stage.style.setProperty('--portrait-pan-y', `${(panY * eased).toFixed(1)}px`)
-      stage.style.setProperty('--hero-copy-opacity', copyOpacity.toFixed(3))
       setScrolled(window.scrollY > 32)
       setScrollProgress(Math.round((window.scrollY / Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)) * 100))
     }
@@ -475,8 +340,8 @@ export default function App() {
         <div className="page-progress" aria-hidden="true"><span style={{ transform: `scaleX(${scrollProgress / 100})` }} /></div>
       </header>
 
-      <div className="intro-track" ref={introTrackRef}>
-        <section id="top" className="hero-stage" ref={heroStageRef} aria-label="个人简介">
+      <div className="intro-track">
+        <section id="top" className="hero-stage" aria-label="个人简介">
           <div className="hero-grid-overlay" aria-hidden="true" />
           <div className="hero-orbit" aria-hidden="true">
             <svg viewBox="0 0 760 760" focusable="false">
@@ -512,7 +377,6 @@ export default function App() {
           <figure className="portrait-window" aria-label="文字构成的个人肖像">
             <div className="portrait-window-bar"><span>portrait.render</span><span>1086 × 1448 PX</span></div>
             <TextRevealImage
-              ref={portraitRef}
               imageSrc={portraitSource}
               textSrc={portraitType}
               alt="阮靖的个人肖像"
@@ -658,7 +522,6 @@ export default function App() {
         <div className="mobile-nav-status"><i /> SYSTEM ONLINE</div>
       </aside>
       <PageIndex items={NAV} activeSection={activeNav} progress={scrollProgress} />
-      <TextFlowTransition phase={navigationTransition === 'idle' ? '' : navigationTransition} onCovered={() => navigationCoveredRef.current?.()} />
     </div>
   )
 }

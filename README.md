@@ -48,13 +48,13 @@ python scripts/generate_text_image.py src/assets/projects/commerce-architecture-
 
 ## 浏览器验收
 
-本机安装 Chrome 后，先运行 `npm run build` 和 `npm run preview -- --port 4173`，保持预览服务运行，再在另一个终端执行：
+本机安装 Chrome 后，先运行 `npm run build` 和 `npm run preview -- --host 127.0.0.1 --port 4173`，保持预览服务运行，再在另一个终端执行：
 
 ```sh
 npm run verify:browser
 ```
 
-脚本检查首屏图左文右、眼睛放大、章节圆形展开的中间帧、字符流完全遮挡后跳转、浏览器返回、页面索引、图片移入移出、手机点击切换、字体与素材加载，以及 320 / 768 / 1024 / 1440px 布局。截图保存在不提交 Git 的 `shots/` 目录。预览端口不同可通过 `PREVIEW_URL` 指定完整地址。
+脚本检查首屏图左文右、滚动时肖像保持原尺寸、首页自然滚出视口、导航平滑滚动与浏览器返回、文字边缘随滚动变化并在停滚时保持不动、图片移入移出、手机点击切换、素材加载，以及 320 / 768 / 1024 / 1440px 布局。首页不再放大肖像，导航不播放强制整屏切换动画。截图保存在不提交 Git 的 `shots/` 目录。预览端口不同可通过 `PREVIEW_URL` 指定完整地址。
 
 ## 发布方式
 
